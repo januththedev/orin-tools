@@ -180,9 +180,12 @@ export default async function handler(req: Req, res: Res): Promise<unknown> {
             source: code,
             options: {
               userOptions: [],
-              execute: true,
-              args: [],
-              stdin: String(stdin || '').slice(0, 10_000),
+              executeParameters: {
+                args: [],
+                stdin: String(stdin || '').slice(0, 10_000),
+              },
+              compilerOptions: { executorRequest: true, skipAsm: true },
+              filters: { execute: true },
             },
             lang: c.lang,
             allowStoreCode: false,
@@ -193,12 +196,13 @@ export default async function handler(req: Req, res: Res): Promise<unknown> {
           continue;
         }
         const j = await r.json().catch(() => ({}));
-        const buildFailed = (j.code || 0) !== 0 && !j.execResult;
+        const buildFailed = (j.code || 0) !== 0 && !j.execResult && !j.didExecute;
         const exec = j.execResult || {};
+        // Output may sit top-level (j.stdout) or under execResult.
         const stdout = streamText(exec.stdout) || streamText(j.stdout);
         const stderr = streamText(exec.stderr) || streamText(j.stderr);
         // No execution happened (e.g. disassembly-only compiler): try next.
-        if (!j.execResult && !stdout && !stderr) {
+        if (!j.execResult && !j.didExecute && !stdout && !stderr) {
           lastErr = `compiler ${c.id}: no execution result`;
           continue;
         }
