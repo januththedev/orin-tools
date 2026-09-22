@@ -101,7 +101,7 @@ const PREFER: Record<string, string[]> = {
   lua: ['lua'], r: ['r'], perl: ['perl'], haskell: ['ghc'],
   scala: ['scala'], dart: ['dart'],
 };
-const PENALTY = ['pythran', 'nightly', 'trunk', 'snapshot', 'beta', 'experimental', 'arm', 'riscv', 'avr']; // cross-targets can't execute here
+const PENALTY = ['pythran', 'nightly', 'trunk', 'snapshot', 'beta', 'experimental', 'arm', 'arm64', 'riscv', 'avr', 'mips', 'mipsel', 'mips64', 'ppc', 'ppc64', 's390x', 'sparc', 'wasm', 'tinygo', 'assert']; // cross-targets can't execute here
 
 function pickCompilers(list: Compiler[], language: unknown): Compiler[] {
   const want = String(language || '').toLowerCase().trim();
@@ -178,6 +178,8 @@ export default async function handler(req: Req, res: Res): Promise<unknown> {
           method: 'POST',
           body: {
             source: code,
+            // Java requires the public class filename to match (Main.java).
+            ...(c.lang === 'java' ? { files: [{ filename: 'Main.java', contents: code }] } : {}),
             options: {
               userOptions: [],
               executeParameters: {
