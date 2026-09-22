@@ -149,6 +149,7 @@
       <a href="#tools">Tools</a>
       <a href="#docs">Docs</a>
       <a href="#selfhost">Self-host</a>
+      <a href="#guide">Guide</a>
     </div>
   </div>
 </nav>
@@ -162,6 +163,7 @@
     <div class="cta">
       <a href="#demo" class="btn cyan magnetic"><i class="fa-solid fa-bolt"></i>Try it live</a>
       <a href="#docs" class="btn ghost magnetic"><i class="fa-solid fa-book"></i>Read the docs</a>
+      <a href="https://github.com/januththedev/orin-tools" target="_blank" class="btn ghost magnetic"><i class="fa-brands fa-github"></i>GitHub</a>
     </div>
 
     <div class="demo" id="demo">
@@ -275,6 +277,19 @@ r = requests.post(
   <div class="code" style="margin-top:30px;max-width:640px"><button class="copy" data-c="docker">copy</button><pre id="code-docker"><span class="t"># your own search engine in one line</span>
 docker run -d --name searxng --restart unless-stopped \
   -p 8080:8080 searxng/searxng</pre></div>
+</section>
+
+<section class="wrap reveal" id="guide">
+  <p class="kicker">Field guide</p>
+  <h2>Troubleshooting,<br />then contributing.</h2>
+  <div class="grid3">
+    <div class="card"><div class="ic"><i class="fa-solid fa-stethoscope"></i></div><h3>No results?</h3><p>Append <span class="mono">?q=test&n=1</span> to the API and read the <span class="mono">debug</span> field — it names exactly which layer lived or died. Datacenter IPs get blocked by some engines; News RSS and Wikipedia almost never die.</p></div>
+    <div class="card"><div class="ic"><i class="fa-solid fa-gauge-high"></i></div><h3>Hit 429?</h3><p>30 searches or 10 runs per minute per IP. Back off and retry — cached answers return instantly and don't count against the spirit of the limit.</p></div>
+    <div class="card"><div class="ic"><i class="fa-solid fa-code"></i></div><h3>Run failed?</h3><p>Check <span class="mono">/api/run?languages=1</span> for exact names, keep code under 100KB, stdin under 10KB. The API hops toolchains automatically and reports which one answered.</p></div>
+    <div class="card"><div class="ic"><i class="fa-solid fa-rocket"></i></div><h3>Deploy your own</h3><p>Import the repo in Vercel → Deploy. No env vars, no build step. Set <span class="mono">SEARXNG_URL</span> after for layer one. Health check: <span class="mono">/api/search?q=test&n=1</span>.</p></div>
+    <div class="card"><div class="ic"><i class="fa-solid fa-handshake"></i></div><h3>Contribute</h3><p>Public repo, MIT. Good first PRs: new free search layers, execution backends, compiler preferences, playground UX. One concern per PR, live-tested. No keys, no paid services, no telemetry — ever.</p></div>
+    <div class="card"><div class="ic"><i class="fa-solid fa-tag"></i></div><h3>Version</h3><p>Rolling release on <span class="mono">main</span> — every push redeploys. Breaking changes are announced in release notes first. API shape is versioned by behavior, not numbers: fields only ever get added.</p></div>
+  </div>
 </section>
 
 <footer>
