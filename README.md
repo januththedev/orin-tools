@@ -1,4 +1,4 @@
-# Orin Search — free web search + code execution, no keys, no bills
+# Orin Tools — free web search + code execution, no keys, no bills
 
 `GET https://<your-deploy>/api/search?q=hello+world&n=5`
 

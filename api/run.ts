@@ -20,14 +20,34 @@ const RUN_LIMIT = 10; // per IP per minute
 const CODE_MAX = 100_000;
 const OUT_MAX = 50_000;
 
-const runs = new Map(); // ip -> { windowStart, count }
-let compilersCache = { at: 0, list: [] };
-
-function clientIp(req) {
-  return ((req.headers['x-forwarded-for'] || '').split(',')[0]).trim() || 'unknown';
+interface Req {
+  method?: string;
+  query: Record<string, string | string[] | undefined>;
+  headers: Record<string, string | string[] | undefined>;
+  body?: any;
 }
 
-function allowed(ip) {
+interface Res {
+  setHeader(k: string, v: string): void;
+  status(c: number): Res;
+  json(o: unknown): unknown;
+  end(): unknown;
+}
+
+interface Compiler {
+  id: string;
+  lang: string;
+  supportsExecute?: boolean;
+}
+
+const runs = new Map<string, { windowStart: number; count: number }>();
+let compilersCache: { at: number; list: Compiler[] } = { at: 0, list: [] };
+
+function clientIp(req: Req): string {
+  return String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || 'unknown';
+}
+
+function allowed(ip: string): boolean {
   const now = Date.now();
   const row = runs.get(ip) || { windowStart: now, count: 0 };
   if (now - row.windowStart >= 60_000) {
@@ -39,7 +59,8 @@ function allowed(ip) {
   return row.count <= RUN_LIMIT;
 }
 
-async function fetchTimeout(url, { ms = 45000, method = 'GET', body = null } = {}) {
+async function fetchTimeout(url: string, opts: { ms?: number; method?: string; body?: unknown } = {}) {
+  const { ms = 45000, method = 'GET', body = null } = opts;
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), ms);
   try {
@@ -54,7 +75,7 @@ async function fetchTimeout(url, { ms = 45000, method = 'GET', body = null } = {
   }
 }
 
-async function compilers() {
+async function compilers(): Promise<Compiler[]> {
   if (Date.now() - compilersCache.at < 3_600_000 && compilersCache.list.length) return compilersCache.list;
   const r = await fetchTimeout(`${CE}/compilers`, { ms: 20000 });
   if (!r.ok) throw new Error(`compilers ${r.status}`);
@@ -63,15 +84,15 @@ async function compilers() {
   return compilersCache.list;
 }
 
-const LANG_ALIASES = {
+const LANG_ALIASES: Record<string, string | string[]> = {
   'c++': 'c++', cpp: 'c++', 'c#': 'csharp', 'c-sharp': 'csharp',
   js: 'javascript', ts: ['typescript', 'javascript'], py: 'python',
-  rb: 'ruby', rs: 'rust', golang: 'go', js: 'javascript',
+  rb: 'ruby', rs: 'rust', golang: 'go',
 };
 
-function pickCompilers(list, language) {
+function pickCompilers(list: Compiler[], language: unknown): Compiler[] {
   const want = String(language || '').toLowerCase().trim();
-  const langs = [want, ...([LANG_ALIASES[want] || []].flat())];
+  const langs = [want, ...([LANG_ALIASES[want] || []].flat() as string[])];
   // executable compilers for the language, newest-ish first (id order is roughly versioned)
   const matches = list.filter(
     (c) => c?.id && langs.includes(String(c.lang || '').toLowerCase()) && c.supportsExecute !== false,
@@ -87,18 +108,19 @@ function pickCompilers(list, language) {
   return ordered;
 }
 
-function streamText(chunks) {
-  const raw = (chunks || []).map((c) => (typeof c === 'string' ? c : c?.text || '')).join('');
+function streamText(chunks: unknown): string {
+  const arr = (Array.isArray(chunks) ? chunks : []) as Array<{ text?: string } | string>;
+  const raw = arr.map((c) => (typeof c === 'string' ? c : c?.text || '')).join('');
   // Strip ANSI color codes — API consumers want plain text.
   return raw.replace(/\u001b\[[0-9;]*m/g, '');
 }
 
-function clip(s) {
+function clip(s: unknown): string {
   const t = String(s || '');
   return t.length > OUT_MAX ? t.slice(0, OUT_MAX) + `\n… (output clipped at ${OUT_MAX} chars)` : t;
 }
 
-export default async function handler(req, res) {
+export default async function handler(req: Req, res: Res): Promise<unknown> {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();

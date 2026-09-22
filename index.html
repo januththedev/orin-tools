@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Orin Search — Free Web Search API, Unlimited Forever</title>
-<meta name="description" content="Orin Search is a free, keyless, unlimited web search API for your product. SearXNG-compatible layers, 10-minute cache, no sign-up, no bills. Free for life." />
+<title>Orin Tools — Free Search API + Code Execution, Unlimited Forever</title>
+<meta name="description" content="Orin Tools: free keyless web search API and sandboxed code execution for your product. No sign-up, no quotas that matter, no bills. Free for life." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
@@ -23,35 +23,37 @@
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html { scroll-behavior: smooth; }
-  body { background: var(--bg); color: var(--ink); font-family: 'Space Grotesk', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  body { background: var(--bg); color: var(--ink); font-family: 'Space Grotesk', system-ui, sans-serif; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
   ::selection { background: #22d3ee; color: #000; }
   .mono { font-family: 'JetBrains Mono', monospace; }
   .wrap { max-width: 1060px; margin: 0 auto; padding: 0 24px; }
 
-  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 50; background: rgba(250,250,249,.8); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
+  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 50; background: rgba(250,250,249,.78); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
   nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 62px; }
   .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; }
-  .brand .dot { width: 10px; height: 10px; border-radius: 50%; background: linear-gradient(135deg, #22d3ee, #38bdf8); box-shadow: 0 0 14px rgba(34,211,238,.7); }
+  .brand .dot { width: 10px; height: 10px; border-radius: 50%; background: linear-gradient(135deg, #22d3ee, #818cf8); box-shadow: 0 0 14px rgba(34,211,238,.7); }
   .navlinks a { color: var(--mut); text-decoration: none; font-size: 13px; font-weight: 500; margin-left: 24px; }
   .navlinks a:hover { color: var(--ink); }
-  .btn { display: inline-flex; align-items: center; gap: 8px; background: #0c0a09; color: #fff; font-weight: 700; font-size: 13px; padding: 11px 22px; border-radius: 999px; text-decoration: none; transition: transform .15s, box-shadow .2s; }
-  .btn:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(0,0,0,.18); }
-  .btn.cyan { background: linear-gradient(135deg, #06b6d4, #0284c7); }
-  .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
-  .btn.ghost:hover { border-color: var(--cyan); box-shadow: none; }
 
-  .hero { padding: 140px 0 30px; text-align: center; }
-  .pill { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 8px 18px; font-size: 12px; color: var(--mut); margin-bottom: 26px; box-shadow: 0 2px 12px rgba(0,0,0,.04); }
+  .hero { position: relative; padding: 150px 0 30px; text-align: center; }
+  #gl { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .hero-inner { position: relative; z-index: 1; }
+  .pill { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: rgba(255,255,255,.75); backdrop-filter: blur(8px); border-radius: 999px; padding: 8px 18px; font-size: 12px; color: var(--mut); margin-bottom: 26px; box-shadow: 0 2px 12px rgba(0,0,0,.05); }
   .pill .live { width: 7px; height: 7px; border-radius: 50%; background: #16a34a; box-shadow: 0 0 10px #16a34a; animation: pulse 2s infinite; }
   @keyframes pulse { 50% { opacity: .4; } }
-  h1 { font-size: clamp(42px, 7vw, 84px); font-weight: 700; line-height: 1; letter-spacing: -0.03em; margin-bottom: 20px; }
-  h1 .grad { background: linear-gradient(100deg, #0891b2, #4f46e5); -webkit-background-clip: text; background-clip: text; color: transparent; }
-  .sub { color: var(--mut); font-size: clamp(15px, 2vw, 18px); max-width: 600px; margin: 0 auto 32px; line-height: 1.65; }
+  h1 { font-size: clamp(42px, 7vw, 88px); font-weight: 700; line-height: 1; letter-spacing: -0.03em; margin-bottom: 20px; }
+  h1 .grad { background: linear-gradient(100deg, #0891b2, #4f46e5 60%, #9333ea); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .sub { color: var(--mut); font-size: clamp(15px, 2vw, 18px); max-width: 620px; margin: 0 auto 32px; line-height: 1.65; }
   .sub b { color: var(--ink); }
   .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; background: #0c0a09; color: #fff; font-weight: 700; font-size: 13px; padding: 12px 24px; border-radius: 999px; text-decoration: none; transition: transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .2s; will-change: transform; }
+  .btn:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 14px 34px rgba(0,0,0,.2); }
+  .btn.cyan { background: linear-gradient(135deg, #06b6d4, #4f46e5); }
+  .btn.ghost { background: rgba(255,255,255,.7); color: var(--ink); border: 1px solid var(--line); }
+  .btn.ghost:hover { border-color: var(--cyan); box-shadow: 0 10px 26px rgba(8,145,178,.15); }
 
-  .demo { margin: 56px auto 0; max-width: 720px; text-align: left; }
-  .demo-box { background: var(--panel); border: 1px solid var(--line); border-radius: 24px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,.08); }
+  .demo { margin: 56px auto 0; max-width: 720px; text-align: left; position: relative; z-index: 1; }
+  .demo-box { background: rgba(255,255,255,.9); backdrop-filter: blur(12px); border: 1px solid var(--line); border-radius: 24px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,.09); }
   .demo-bar { display: flex; align-items: center; gap: 8px; padding: 13px 18px; border-bottom: 1px solid var(--line); background: #f5f5f4; }
   .demo-bar i { width: 10px; height: 10px; border-radius: 50%; background: #d6d3d1; }
   .demo-bar i:first-child { background: #ff5f57; } .demo-bar i:nth-child(2) { background: #febc2e; } .demo-bar i:nth-child(3) { background: #28c840; }
@@ -59,7 +61,7 @@
   .demo-search { display: flex; gap: 10px; padding: 16px; }
   .demo-search input { flex: 1; background: var(--bg); border: 1px solid var(--line); border-radius: 14px; padding: 13px 16px; font-family: inherit; font-size: 15px; outline: none; color: var(--ink); }
   .demo-search input:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px var(--cyan-soft); }
-  .demo-search button { background: #0c0a09; color: #fff; border: none; border-radius: 14px; padding: 0 24px; font-weight: 700; font-size: 14px; cursor: pointer; }
+  .demo-search button { background: #0c0a09; color: #fff; border: none; border-radius: 14px; padding: 0 24px; font-weight: 700; font-size: 14px; cursor: pointer; font-family: inherit; }
   .demo-search button:hover { background: #292524; }
   .demo-results { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 10px; max-height: 360px; overflow-y: auto; }
   .r { border: 1px solid var(--line); border-radius: 14px; padding: 13px 15px; background: var(--bg); animation: rise .3s ease both; }
@@ -69,6 +71,9 @@
   .r p { color: var(--mut); font-size: 12.5px; margin-top: 4px; line-height: 1.55; }
   .r .eng { display: inline-block; margin-top: 8px; font-size: 10px; font-weight: 700; color: var(--lime); background: var(--lime-soft); border-radius: 999px; padding: 2px 10px; }
   .demo-meta { padding: 0 18px 14px; font-size: 11px; color: var(--mut); }
+  .shimmer { height: 62px; border-radius: 14px; background: linear-gradient(100deg, #eee 40%, #f7f7f7 50%, #eee 60%); background-size: 200% 100%; animation: sh 1.2s infinite; }
+  @keyframes sh { to { background-position: -200% 0; } }
+  .warn { margin: 0 16px 16px; padding: 12px 15px; border-radius: 14px; background: #fef3c7; border: 1px solid #fcd34d; color: #92400e; font-size: 12.5px; line-height: 1.55; }
   .tabs { display: flex; gap: 8px; padding: 14px 16px 0; }
   .tab { flex: 1; padding: 10px; border-radius: 12px; border: 1px solid var(--line); background: transparent; color: var(--mut); font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; transition: all .2s; }
   .tab.on { background: #0c0a09; color: #fff; border-color: #0c0a09; }
@@ -79,20 +84,18 @@
   .run-code { margin: 12px 16px 0; width: calc(100% - 32px); min-height: 130px; background: #0c0a09; color: #e7e5e4; border: none; border-radius: 14px; padding: 14px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; line-height: 1.65; resize: vertical; outline: none; }
   .run-out { margin: 12px 16px 16px; background: #0c0a09; color: #bef264; border-radius: 14px; padding: 14px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; line-height: 1.65; white-space: pre-wrap; word-break: break-word; max-height: 220px; overflow-y: auto; }
   .run-out:empty { display: none; }
-  .shimmer { height: 62px; border-radius: 14px; background: linear-gradient(100deg, #eee 40%, #f7f7f7 50%, #eee 60%); background-size: 200% 100%; animation: sh 1.2s infinite; }
-  @keyframes sh { to { background-position: -200% 0; } }
-  .warn { margin: 0 16px 16px; padding: 12px 15px; border-radius: 14px; background: #fef3c7; border: 1px solid #fcd34d; color: #92400e; font-size: 12.5px; line-height: 1.55; }
 
-  section { padding: 80px 0 0; }
+  section { padding: 84px 0 0; }
   .kicker { font-size: 11px; font-weight: 700; letter-spacing: .22em; color: var(--cyan); text-transform: uppercase; margin-bottom: 12px; }
   h2 { font-size: clamp(28px, 4vw, 46px); font-weight: 700; letter-spacing: -0.02em; line-height: 1.08; margin-bottom: 14px; }
   .lead { color: var(--mut); font-size: 16px; max-width: 620px; line-height: 1.65; }
   .grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-top: 36px; }
-  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 28px 24px; box-shadow: 0 2px 14px rgba(0,0,0,.03); transition: transform .2s, box-shadow .2s; }
-  .card:hover { transform: translateY(-4px); box-shadow: 0 14px 34px rgba(0,0,0,.08); }
-  .card .ic { width: 42px; height: 42px; border-radius: 13px; background: var(--cyan-soft); color: var(--cyan); display: flex; align-items: center; justify-content: center; font-size: 17px; margin-bottom: 16px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 28px 24px; box-shadow: 0 2px 14px rgba(0,0,0,.03); transition: transform .25s cubic-bezier(.34,1.4,.64,1), box-shadow .25s; }
+  .card:hover { transform: translateY(-5px) rotate(-.3deg); box-shadow: 0 18px 40px rgba(0,0,0,.09); }
+  .card .ic { width: 42px; height: 42px; border-radius: 13px; background: linear-gradient(135deg, var(--cyan-soft), rgba(79,70,229,.12)); color: var(--cyan); display: flex; align-items: center; justify-content: center; font-size: 17px; margin-bottom: 16px; }
   .card h3 { font-size: 17px; margin-bottom: 8px; }
   .card p { color: var(--mut); font-size: 14px; line-height: 1.65; }
+  .card .tag { display: inline-block; margin-top: 12px; font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--lime); background: var(--lime-soft); border-radius: 999px; padding: 3px 12px; }
 
   .table { margin-top: 36px; border: 1px solid var(--line); border-radius: 20px; overflow: hidden; background: var(--panel); }
   .row { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr 1.2fr; padding: 16px 22px; font-size: 14px; border-bottom: 1px solid var(--line); align-items: center; }
@@ -108,10 +111,18 @@
   .code { background: #0c0a09; border-radius: 18px; padding: 20px; position: relative; overflow-x: auto; }
   .code pre { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; line-height: 1.7; color: #e7e5e4; white-space: pre; }
   .code .t { color: #a8a29e; } .code .k { color: #22d3ee; } .code .s { color: #bef264; }
-  .copy { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14); color: #d6d3d1; border-radius: 10px; padding: 6px 12px; font-size: 11px; cursor: pointer; }
+  .copy { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14); color: #d6d3d1; border-radius: 10px; padding: 6px 12px; font-size: 11px; cursor: pointer; font-family: inherit; }
   .copy:hover { color: #fff; border-color: #22d3ee; }
-  .endpoint { display: flex; align-items: center; gap: 12px; margin-top: 22px; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 15px 18px; font-family: 'JetBrains Mono', monospace; font-size: 13px; flex-wrap: wrap; word-break: break-all; }
+  .endpoint { display: flex; align-items: center; gap: 12px; margin-top: 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 15px 18px; font-family: 'JetBrains Mono', monospace; font-size: 13px; flex-wrap: wrap; word-break: break-all; }
+  .endpoint:first-of-type { margin-top: 22px; }
   .method { background: #16a34a; color: #fff; font-weight: 700; border-radius: 8px; padding: 4px 12px; font-size: 12px; }
+  .method.post { background: #4f46e5; }
+
+  .marquee { overflow: hidden; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-top: 84px; padding: 18px 0; background: var(--panel); }
+  .marquee div { display: flex; gap: 56px; white-space: nowrap; animation: mq 24s linear infinite; width: max-content; }
+  .marquee span { font-size: 12px; font-weight: 700; letter-spacing: .2em; color: var(--mut); text-transform: uppercase; }
+  .marquee span b { color: var(--cyan); }
+  @keyframes mq { to { transform: translateX(-50%); } }
 
   footer { padding: 56px 0 46px; color: var(--mut); font-size: 13px; }
   footer .wrap { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; }
@@ -119,109 +130,131 @@
   footer a:hover { color: var(--cyan); }
   .reveal { opacity: 0; transform: translateY(22px); transition: opacity .6s ease, transform .6s ease; }
   .reveal.in { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1; transform: none; transition: none; }
+    .marquee div { animation: none; }
+  }
 </style>
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+</script>
 </head>
 <body>
 
 <nav>
   <div class="wrap">
-    <div class="brand"><span class="dot"></span>ORIN&nbsp;SEARCH</div>
+    <div class="brand"><span class="dot"></span>ORIN&nbsp;TOOLS</div>
     <div class="navlinks">
       <a href="#demo">Demo</a>
-      <a href="#why">Why</a>
+      <a href="#tools">Tools</a>
       <a href="#docs">Docs</a>
       <a href="#selfhost">Self-host</a>
     </div>
   </div>
 </nav>
 
-<header class="hero wrap">
-  <div class="pill"><span class="live"></span><span class="mono" id="status-pill">checking engines…</span></div>
-  <h1>Web search API.<br />Free forever.</h1>
-  <p class="sub">A <b>free, keyless, unlimited</b> search API + code execution for your product. No sign-up, no quotas that matter, no per-call billing. Plug it into any app, chatbot, or agent.</p>
-  <div class="cta">
-    <a href="#demo" class="btn cyan"><i class="fa-solid fa-bolt"></i>Try it live</a>
-    <a href="#docs" class="btn ghost"><i class="fa-solid fa-book"></i>Read the docs</a>
-  </div>
+<header class="hero" id="top">
+  <canvas id="gl"></canvas>
+  <div class="hero-inner wrap">
+    <div class="pill"><span class="live"></span><span class="mono" id="status-pill">checking engines…</span></div>
+    <h1>Search the web.<br />Run code. <span class="grad">Free forever.</span></h1>
+    <p class="sub">Orin Tools gives your product <b>search + execution</b> with no keys, no quotas that matter, no bills. Plug it into any app, chatbot, or agent — <b>free for life</b>.</p>
+    <div class="cta">
+      <a href="#demo" class="btn cyan magnetic"><i class="fa-solid fa-bolt"></i>Try it live</a>
+      <a href="#docs" class="btn ghost magnetic"><i class="fa-solid fa-book"></i>Read the docs</a>
+    </div>
 
-  <div class="demo" id="demo">
-    <div class="demo-box">
-      <div class="demo-bar"><i></i><i></i><i></i><span class="mono">playground — this API, right now</span></div>
-      <div class="tabs">
-        <button class="tab on" id="tab-search">Search the web</button>
-        <button class="tab" id="tab-run">Run code</button>
-      </div>
-      <div id="panel-search">
-        <div class="demo-search">
-          <input id="q" type="text" value="weather forecast Kandy tomorrow" aria-label="Search query" />
-          <button id="go">Search</button>
+    <div class="demo" id="demo">
+      <div class="demo-box">
+        <div class="demo-bar"><i></i><i></i><i></i><span class="mono">playground — this API, right now</span></div>
+        <div class="tabs">
+          <button class="tab on" id="tab-search">Search the web</button>
+          <button class="tab" id="tab-run">Run code</button>
         </div>
-        <div class="demo-results" id="results"></div>
-        <div class="demo-meta mono" id="meta">press search — no key, no login, no catch.</div>
-      </div>
-      <div id="panel-run" style="display:none">
-        <div class="run-row">
-          <select id="rlang" aria-label="Language">
-            <option value="python">Python</option>
-            <option value="javascript">JavaScript</option>
-            <option value="typescript">TypeScript</option>
-            <option value="java">Java</option>
-            <option value="c">C</option>
-            <option value="c++">C++</option>
-            <option value="go">Go</option>
-            <option value="rust">Rust</option>
-            <option value="ruby">Ruby</option>
-            <option value="php">PHP</option>
-          </select>
-          <button id="rgo">Run</button>
+        <div id="panel-search">
+          <div class="demo-search">
+            <input id="q" type="text" value="weather forecast Kandy tomorrow" aria-label="Search query" />
+            <button id="go">Search</button>
+          </div>
+          <div class="demo-results" id="results"></div>
+          <div class="demo-meta mono" id="meta">press search — no key, no login, no catch.</div>
         </div>
-        <textarea class="run-code" id="rcode" spellcheck="false">print(sum(range(101)))</textarea>
-        <div class="run-out" id="rout"></div>
-        <div class="demo-meta mono" id="rmeta">real sandbox, ~20 languages — free.</div>
+        <div id="panel-run" style="display:none">
+          <div class="run-row">
+            <select id="rlang" aria-label="Language">
+              <option value="python">Python</option>
+              <option value="javascript">JavaScript</option>
+              <option value="typescript">TypeScript</option>
+              <option value="java">Java</option>
+              <option value="c">C</option>
+              <option value="c++">C++</option>
+              <option value="go">Go</option>
+              <option value="rust">Rust</option>
+              <option value="ruby">Ruby</option>
+              <option value="php">PHP</option>
+            </select>
+            <button id="rgo">Run</button>
+          </div>
+          <textarea class="run-code" id="rcode" spellcheck="false">print(sum(range(101)))</textarea>
+          <div class="run-out" id="rout"></div>
+          <div class="demo-meta mono" id="rmeta">real sandbox, ~20 languages — free.</div>
+        </div>
       </div>
     </div>
   </div>
 </header>
 
+<div class="marquee"><div>
+  <span><b>$0</b> per call</span><span>no api keys</span><span><b>unlimited</b> for life</span><span>search + run</span><span>searxng inside</span><span>sandbox ready</span>
+  <span><b>$0</b> per call</span><span>no api keys</span><span><b>unlimited</b> for life</span><span>search + run</span><span>searxng inside</span><span>sandbox ready</span>
+</div></div>
+
+<section class="wrap reveal" id="tools">
+  <p class="kicker">The platform</p>
+  <h2>Two APIs.<br />Zero bills.</h2>
+  <p class="lead">Everything an AI product needs to touch the real world — look things up, run code — without a single API key or meter running.</p>
+  <div class="grid3">
+    <div class="card"><div class="ic"><i class="fa-solid fa-magnifying-glass"></i></div><h3>Web Search</h3><p>Three free layers: your SearXNG, public instances, Wikipedia + News + DuckDuckGo. First success wins, results merged and cached.</p><span class="tag">GET /api/search</span></div>
+    <div class="card"><div class="ic"><i class="fa-solid fa-terminal"></i></div><h3>Code Execution</h3><p>Real sandboxed runs in ~20 languages — Python, JS, Java, C++, Go, Rust. Stdout, stderr, exit code. Ten runs a minute, free.</p><span class="tag">POST /api/run</span></div>
+    <div class="card"><div class="ic"><i class="fa-solid fa-box-open"></i></div><h3>Sandbox-ready</h3><p>Need private, long-running jobs? The repo ships a Vercel Sandbox quickstart — same contract, your own isolated microVMs.</p><span class="tag">sandbox-quickstart/</span></div>
+  </div>
+</section>
+
 <section class="wrap reveal" id="why">
-  <p class="kicker">Why Orin Search</p>
-  <h2>Search pricing is a racket.<br />We opted out.</h2>
-  <p class="lead">Tavily, Brave, Exa — great products, metered bills. Every agent loop and every RAG query costs money. Orin Search stacks free layers so the meter never runs.</p>
+  <p class="kicker">Why Orin Tools</p>
+  <h2>Metered APIs are a racket.<br />We opted out.</h2>
+  <p class="lead">Tavily, Brave, Exa, E2B — great products, metered bills. Every agent loop and every RAG query costs money. Orin Tools stacks free layers so the meter never runs.</p>
   <div class="table mono">
     <div class="row head"><span>provider</span><span>free tier</span><span>then</span><span>keys</span><span>limits</span></div>
     <div class="row"><span>Tavily</span><span>1k/mo</span><span class="strike">$8 / 1k</span><span>yes</span><span>hard caps</span></div>
+    <div class="row"><span>E2B sandbox</span><span>$100 credit</span><span class="strike">usage</span><span>yes</span><span>hard caps</span></div>
     <div class="row"><span>Brave</span><span>2k/mo</span><span class="strike">$5 / 1k</span><span>yes</span><span>hard caps</span></div>
-    <div class="row"><span>Exa</span><span>1k/mo</span><span class="strike">$5 / 1k</span><span>yes</span><span>hard caps</span></div>
-    <div class="row us"><span><strong>Orin Search</strong></span><span class="free">unlimited</span><span class="free">$0</span><span class="free">none</span><span class="free">30/min fair use</span></div>
-  </div>
-  <div class="grid3">
-    <div class="card"><div class="ic"><i class="fa-solid fa-layer-group"></i></div><h3>Three free layers</h3><p>Your own SearXNG when configured, public SearXNG instances as backup, Wikipedia + DuckDuckGo as the floor that never dies. First success wins.</p></div>
-    <div class="card"><div class="ic"><i class="fa-solid fa-key"></i></div><h3>No keys, no accounts</h3><p>Nothing to sign up for and nothing to leak. Call it from a browser, a cron job, anywhere. CORS is open.</p></div>
-    <div class="card"><div class="ic"><i class="fa-solid fa-infinity"></i></div><h3>Unlimited for life</h3><p>One honest rate limit (30 req/min per IP) so one abuser can't ruin it for everyone. Everything else: infinite, forever, free.</p></div>
+    <div class="row us"><span><strong>Orin Tools</strong></span><span class="free">unlimited</span><span class="free">$0</span><span class="free">none</span><span class="free">fair use</span></div>
   </div>
 </section>
 
 <section class="wrap reveal" id="docs">
   <p class="kicker">Docs</p>
-  <h2>One endpoint.<br />Thirty seconds to ship.</h2>
-  <p class="lead">Single GET route. Params <span class="mono">q</span> (required), <span class="mono">n</span> (1–10, default 5). JSON back with titles, URLs, snippets, and which engines answered.</p>
+  <h2>Two endpoints.<br />Thirty seconds to ship.</h2>
+  <p class="lead">Search is one GET. Run is one POST. JSON in, JSON out, CORS open — call from a browser, a cron job, anywhere.</p>
   <div class="endpoint"><span class="method">GET</span><span id="ep">/api/search?q=…&amp;n=5</span></div>
-  <div class="endpoint"><span class="method">POST</span><span id="ep2">/api/run — { language, code, stdin? }</span></div>
+  <div class="endpoint"><span class="method post">POST</span><span id="ep2">/api/run — { language, code, stdin? }</span></div>
   <div class="docs">
     <div class="code"><button class="copy" data-c="curl">copy</button><pre id="code-curl"><span class="t"># search from anywhere</span>
 curl <span class="s">"https://YOUR-DEPLOY/api/search?q=sri+lanka+news&n=5"</span></pre></div>
-    <div class="code"><button class="copy" data-c="js">copy</button><pre id="code-js"><span class="k">const</span> r = <span class="k">await</span> fetch(
+    <div class="code"><button class="copy" data-c="js">copy</button><pre id="code-js"><span class="k">const</span> hits = <span class="k">await</span> fetch(
   <span class="s">`https://YOUR-DEPLOY/api/search?`</span> +
   <span class="k">new</span> URLSearchParams({ q: query, n: <span class="s">'5'</span> })
-);
-<span class="k">const</span> { results } = <span class="k">await</span> r.json();</pre></div>
-    <div class="code"><button class="copy" data-c="py">copy</button><pre id="code-py"><span class="t"># python</span>
+).then(r =&gt; r.json());</pre></div>
+    <div class="code"><button class="copy" data-c="py">copy</button><pre id="code-py"><span class="t"># run python anywhere</span>
 <span class="k">import</span> requests
-r = requests.get(
-  <span class="s">"https://YOUR-DEPLOY/api/search"</span>,
-  params={<span class="s">"q"</span>: query, <span class="s">"n"</span>: <span class="s">5</span>},
-).json()</pre></div>
-    <div class="code"><pre><span class="t"># response shape</span>
+r = requests.post(
+  <span class="s">"https://YOUR-DEPLOY/api/run"</span>,
+  json={<span class="s">"language"</span>: <span class="s">"python"</span>,
+        <span class="s">"code"</span>: <span class="s">"print(40 + 2)"</span>},
+).json()
+<span class="k">print</span>(r[<span class="s">"output"</span>])  <span class="t"># 42</span></pre></div>
+    <div class="code"><pre><span class="t"># search response shape</span>
 {
   <span class="s">"query"</span>: <span class="s">"sri lanka news"</span>,
   <span class="s">"results"</span>: [{
@@ -238,7 +271,7 @@ r = requests.get(
 <section class="wrap reveal" id="selfhost">
   <p class="kicker">Layer one</p>
   <h2>Bring your own SearXNG.<br />Or don't — it works either way.</h2>
-  <p class="lead">One docker command on any always-on machine gives Orin Search a private, full-power engine. Set <span class="mono">SEARXNG_URL</span> and it becomes authoritative — the public layers stay as automatic backup.</p>
+  <p class="lead">One docker command on any always-on machine gives Orin Tools a private, full-power engine. Set <span class="mono">SEARXNG_URL</span> and it becomes authoritative — the public layers stay as automatic backup.</p>
   <div class="code" style="margin-top:30px;max-width:640px"><button class="copy" data-c="docker">copy</button><pre id="code-docker"><span class="t"># your own search engine in one line</span>
 docker run -d --name searxng --restart unless-stopped \
   -p 8080:8080 searxng/searxng</pre></div>
@@ -246,14 +279,90 @@ docker run -d --name searxng --restart unless-stopped \
 
 <footer>
   <div class="wrap">
-    <div class="brand"><span class="dot"></span>ORIN&nbsp;SEARCH <span style="color:var(--mut);font-weight:400;margin-left:10px">free for life · by Orin AI</span></div>
+    <div class="brand"><span class="dot"></span>ORIN&nbsp;TOOLS <span style="color:var(--mut);font-weight:400;margin-left:10px">free for life · by Orin AI</span></div>
     <div>
       <a href="/api/search?q=hello&n=1" target="_blank">API</a>
-      <a href="https://github.com/januththedev/orin-search" target="_blank">GitHub</a>
+      <a href="https://github.com/januththedev/orin-tools" target="_blank">GitHub</a>
       <a href="https://orinai.org" target="_blank">Orin AI</a>
     </div>
   </div>
 </footer>
+
+<script type="module">
+  import * as THREE from 'three';
+
+  // Interactive particle field — soft on light theme, follows the mouse.
+  try {
+    const canvas = document.getElementById('gl');
+    const hero = document.querySelector('.hero');
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 100);
+    camera.position.z = 14;
+
+    const COUNT = 900;
+    const pos = new Float32Array(COUNT * 3);
+    const seed = new Float32Array(COUNT);
+    for (let i = 0; i < COUNT; i++) {
+      pos[i * 3] = (Math.random() - 0.5) * 30;
+      pos[i * 3 + 1] = (Math.random() - 0.5) * 16;
+      pos[i * 3 + 2] = (Math.random() - 0.5) * 8;
+      seed[i] = Math.random() * Math.PI * 2;
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    const mat = new THREE.PointsMaterial({
+      size: 0.09, transparent: true, opacity: 0.55,
+      color: 0x0891b2, sizeAttenuation: true, depthWrite: false,
+    });
+    const points = new THREE.Points(geo, mat);
+    scene.add(points);
+
+    const mat2 = mat.clone();
+    mat2.color = new THREE.Color(0x7c3aed);
+    mat2.opacity = 0.3; mat2.size = 0.07;
+    const points2 = new THREE.Points(geo.clone(), mat2);
+    points2.rotation.z = Math.PI;
+    scene.add(points2);
+
+    let mx = 0, my = 0, tx = 0, ty = 0;
+    window.addEventListener('pointermove', (e) => {
+      tx = (e.clientX / window.innerWidth - 0.5) * 2;
+      ty = (e.clientY / window.innerHeight - 0.5) * 2;
+    }, { passive: true });
+
+    function resize() {
+      const w = hero.clientWidth, h = hero.clientHeight;
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    const clock = new THREE.Clock();
+    let visible = true;
+    new IntersectionObserver((es) => { visible = es[0].isIntersecting; }).observe(hero);
+    (function tick() {
+      requestAnimationFrame(tick);
+      if (!visible) return;
+      const t = clock.getElapsedTime();
+      mx += (tx - mx) * 0.04;
+      my += (ty - my) * 0.04;
+      const p = geo.attributes.position.array;
+      for (let i = 0; i < COUNT; i++) {
+        p[i * 3 + 1] += Math.sin(t * 0.6 + seed[i]) * 0.0022;
+        p[i * 3] += Math.cos(t * 0.4 + seed[i]) * 0.0016;
+      }
+      geo.attributes.position.needsUpdate = true;
+      points.rotation.y = mx * 0.25 + t * 0.02;
+      points.rotation.x = my * 0.15;
+      points2.rotation.y = -mx * 0.18 - t * 0.015;
+      renderer.render(scene, camera);
+    })();
+  } catch { /* WebGL unavailable — page works without it */ }
+</script>
 
 <script>
   const $ = (id) => document.getElementById(id);
@@ -261,7 +370,7 @@ docker run -d --name searxng --restart unless-stopped \
   const isLocalFile = window.location.protocol === 'file:';
   $('ep').textContent = (isLocalFile ? 'https://YOUR-DEPLOY' : base) + '/api/search?q=…&n=5';
   $('ep2').textContent = (isLocalFile ? 'https://YOUR-DEPLOY' : base) + '/api/run — { language, code, stdin? }';
-  ['curl','js','py'].forEach(k => {
+  ['curl','js'].forEach(k => {
     const el = $('code-' + k);
     if (el) el.textContent = el.textContent.replaceAll('https://YOUR-DEPLOY', isLocalFile ? 'https://YOUR-DEPLOY' : base);
   });
@@ -271,11 +380,10 @@ docker run -d --name searxng --restart unless-stopped \
     if (document.getElementById('apiwarn') || !isLocalFile) return;
     const w = document.createElement('div');
     w.className = 'warn'; w.id = 'apiwarn';
-    w.innerHTML = '<b>Heads up:</b> you opened this file directly (file://), so the search box has no server to talk to. Deploy this repo on Vercel — then the playground works. The API needs its serverless function, which only exists on the deployed URL.';
+    w.innerHTML = '<b>Heads up:</b> you opened this file directly (file://), so the playground has no server to talk to. Deploy this repo on Vercel — then it works. The APIs need their serverless functions, which only exist on the deployed URL.';
     results.before(w);
   }
 
-  // engine status pill
   if (isLocalFile) {
     $('status-pill').textContent = 'preview mode — deploy to go live';
     showWarn();
@@ -327,7 +435,6 @@ docker run -d --name searxng --restart unless-stopped \
   $('go').addEventListener('click', runDemo);
   $('q').addEventListener('keydown', e => { if (e.key === 'Enter') runDemo(); });
 
-  // tabs
   const ps = $('panel-search'), pr = $('panel-run');
   $('tab-search').addEventListener('click', () => {
     $('tab-search').classList.add('on'); $('tab-run').classList.remove('on');
@@ -338,7 +445,6 @@ docker run -d --name searxng --restart unless-stopped \
     pr.style.display = ''; ps.style.display = 'none';
   });
 
-  // code run demo
   const SNIPPETS = {
     python: 'print(sum(range(101)))',
     javascript: 'console.log(7 * 6);',
@@ -354,7 +460,7 @@ docker run -d --name searxng --restart unless-stopped \
   $('rlang').addEventListener('change', e => { $('rcode').value = SNIPPETS[e.target.value] || ''; $('rout').textContent = ''; });
   $('rgo').addEventListener('click', async () => {
     if (isLocalFile) { showWarn(); return; }
-    const out = $('rout'), meta = $('rmeta');
+    const out = $('rout'), meta2 = $('rmeta');
     out.textContent = 'running…';
     const t0 = performance.now();
     try {
@@ -370,11 +476,21 @@ docker run -d --name searxng --restart unless-stopped \
       const ms = Math.round(performance.now() - t0);
       if (!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
       out.textContent = d.output || ('(exit ' + d.code + ', no output)');
-      meta.textContent = d.language + ' ' + d.version + ' · ' + ms + 'ms · $0.00';
+      meta2.textContent = d.language + ' ' + d.version + ' · ' + ms + 'ms · $0.00';
     } catch (e) {
       out.textContent = '';
-      meta.textContent = 'failed (' + (e.name === 'AbortError' ? 'timed out' : (e.message || 'network')) + ') — retry.';
+      meta2.textContent = 'failed (' + (e.name === 'AbortError' ? 'timed out' : (e.message || 'network')) + ') — retry.';
     }
+  });
+
+  // magnetic buttons
+  document.querySelectorAll('.magnetic').forEach(el => {
+    el.addEventListener('pointermove', e => {
+      const r = el.getBoundingClientRect();
+      const x = e.clientX - r.left - r.width / 2, y = e.clientY - r.top - r.height / 2;
+      el.style.transform = `translate(${x * 0.12}px, ${y * 0.18}px) scale(1.02)`;
+    });
+    el.addEventListener('pointerleave', () => { el.style.transform = ''; });
   });
 
   const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: .12 });

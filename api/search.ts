@@ -23,8 +23,33 @@
  * Per-IP rate limit: 30 req/min (in-memory; fine for our scale).
  */
 const CACHE_TTL_MS = 10 * 60_000;
-const cache = new Map(); // query -> { at, payload }
-const hits = new Map(); // ip -> { windowStart, count }
+
+// Zero-dependency Node globals (no @types/node needed for this file).
+declare const process: { env: Record<string, string | undefined> };
+
+interface Req {
+  method?: string;
+  query: Record<string, string | string[] | undefined>;
+  headers: Record<string, string | string[] | undefined>;
+  body?: unknown;
+}
+
+interface Res {
+  setHeader(k: string, v: string): void;
+  status(c: number): Res;
+  json(o: unknown): unknown;
+  end(): unknown;
+}
+
+interface SearchResult {
+  title: string;
+  url: string;
+  snippet: string;
+  engine: string;
+}
+
+const cache = new Map<string, { at: number; payload: Record<string, unknown> }>();
+const hits = new Map<string, { windowStart: number; count: number }>();
 
 const SEARXNG_SELF = (process.env.SEARXNG_URL || '').replace(/\/+$/, '');
 const PUBLIC_SEARXNG = [
@@ -33,11 +58,11 @@ const PUBLIC_SEARXNG = [
   'https://baresearch.org',
 ];
 
-function clientIp(req) {
-  return ((req.headers['x-forwarded-for'] || '').split(',')[0]).trim() || 'unknown';
+function clientIp(req: Req): string {
+  return String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || 'unknown';
 }
 
-function allowed(ip) {
+function allowed(ip: string): boolean {
   const now = Date.now();
   const row = hits.get(ip) || { windowStart: now, count: 0 };
   if (now - row.windowStart >= 60_000) {
@@ -49,7 +74,8 @@ function allowed(ip) {
   return row.count <= 30;
 }
 
-async function fetchTimeout(url, { ms = 8000, headers = {} } = {}) {
+async function fetchTimeout(url: string, opts: { ms?: number; headers?: Record<string, string> } = {}) {
+  const { ms = 8000, headers = {} } = opts;
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), ms);
   try {
@@ -60,8 +86,8 @@ async function fetchTimeout(url, { ms = 8000, headers = {} } = {}) {
 }
 
 /** Normalize any SearXNG-format JSON ({ results: [{title,url,content,engine}] }). */
-function fromSearxng(json, cap) {
-  const out = [];
+function fromSearxng(json: any, cap: number): SearchResult[] {
+  const out: SearchResult[] = [];
   for (const r of json?.results || []) {
     if (!r?.url) continue;
     out.push({
@@ -75,7 +101,7 @@ function fromSearxng(json, cap) {
   return out;
 }
 
-async function viaSearxng(base, q, cap) {
+async function viaSearxng(base: string, q: string, cap: number): Promise<SearchResult[]> {
   const r = await fetchTimeout(
     `${base}/search?q=${encodeURIComponent(q)}&format=json&language=en&safesearch=1`,
     { ms: 9000 },
@@ -84,7 +110,7 @@ async function viaSearxng(base, q, cap) {
   return fromSearxng(await r.json().catch(() => ({})), cap);
 }
 
-async function viaWikipedia(q, cap) {
+async function viaWikipedia(q: string, cap: number): Promise<SearchResult[]> {
   const r = await fetchTimeout(
     `https://en.wikipedia.org/w/api.php?action=opensearch&search=${encodeURIComponent(q)}&limit=${cap}&format=json`,
     { ms: 8000 },
@@ -100,16 +126,16 @@ async function viaWikipedia(q, cap) {
   }));
 }
 
-async function viaDuckLite(q, cap) {
+async function viaDuckLite(q: string, cap: number): Promise<SearchResult[]> {
   const r = await fetchTimeout(`https://html.duckduckgo.com/html/?q=${encodeURIComponent(q)}`, { ms: 8000 });
   if (!r.ok) throw new Error(`ddg ${r.status}`);
   const html = await r.text();
-  const out = [];
+  const out: SearchResult[] = [];
   const linkRe = /<a[^>]+class="result__a"[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g;
   const snipRe = /<a[^>]+class="result__snippet"[^>]*>([\s\S]*?)<\/a>/g;
-  const strip = (s) => String(s || '').replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&#x27;/g, "'").replace(/&quot;/g, '"').trim();
-  let m;
-  const links = [];
+  const strip = (s: unknown): string => String(s || '').replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&#x27;/g, "'").replace(/&quot;/g, '"').trim();
+  let m: RegExpExecArray | null;
+  const links: Array<{ url: string; title: string }> = [];
   while ((m = linkRe.exec(html)) && links.length < cap) {
     let href = strip(m[1]);
     const u = href.match(/uddg=([^&]+)/);
@@ -123,16 +149,16 @@ async function viaDuckLite(q, cap) {
 }
 
 /** Google News RSS — keyless, datacenter-friendly, best for fresh queries. */
-async function viaGoogleNews(q, cap) {
+async function viaGoogleNews(q: string, cap: number): Promise<SearchResult[]> {
   const r = await fetchTimeout(
     `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=en&gl=US&ceid=US:en`,
     { ms: 8000 },
   );
   if (!r.ok) throw new Error(`gnews ${r.status}`);
   const xml = await r.text();
-  const out = [];
+  const out: SearchResult[] = [];
   const itemRe = /<item>([\s\S]*?)<\/item>/g;
-  const tag = (block, name) => {
+  const tag = (block: string, name: string): string => {
     const m = block.match(new RegExp(`<${name}>([\\s\\S]*?)<\/${name}>`));
     return m ? m[1].replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').trim() : '';
   };
@@ -153,14 +179,14 @@ async function viaGoogleNews(q, cap) {
   return out;
 }
 
-export default async function handler(req, res) {
+export default async function handler(req: Req, res: Res): Promise<unknown> {
   res.setHeader('Access-Control-Allow-Origin', '*');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'GET') return res.status(405).json({ error: 'GET only' });
   if (!allowed(clientIp(req))) return res.status(429).json({ error: 'Slow down' });
 
   const q = String(req.query.q || '').trim().slice(0, 300);
-  const n = Math.min(Math.max(parseInt(req.query.n, 10) || 5, 1), 10);
+  const n = Math.min(Math.max(parseInt(String(req.query.n ?? '5'), 10) || 5, 1), 10);
   if (!q) return res.status(400).json({ error: 'q required' });
 
   const cacheKey = `${q}::${n}`;
@@ -169,9 +195,9 @@ export default async function handler(req, res) {
     return res.status(200).json({ ...hit.payload, cached: true });
   }
 
-  const used = [];
-  const debug = {};
-  let results = [];
+  const used: string[] = [];
+  const debug: Record<string, string> = {};
+  let results: SearchResult[] = [];
 
   // Layer 1 — self-hosted SearXNG (authoritative when configured).
   if (SEARXNG_SELF) {
