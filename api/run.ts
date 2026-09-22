@@ -96,7 +96,7 @@ const PREFER: Record<string, string[]> = {
   python: ['pypy', 'micropython', 'cpython', 'python3', 'python', 'pypy'],
   javascript: ['node'], typescript: ['deno', 'node', 'ts-node'],
   ruby: ['ruby'], php: ['php'], go: ['gl', 'gccgo', 'go'], rust: ['rust'],
-  java: ['openjdk', 'java'], c: ['cg', 'ccx8664', 'cclang'], 'c++': ['cclang', 'cpp', 'g1'],
+  java: ['openjdk', 'java'], c: ['ccx8664', 'cclang', 'cg'], 'c++': ['ccx8664', 'cclang', 'g1'],
   csharp: ['dotnet', 'mono'], swift: ['swift'], kotlin: ['kotlin'],
   lua: ['lua'], r: ['r'], perl: ['perl'], haskell: ['ghc'],
   scala: ['scala'], dart: ['dart'],
@@ -124,8 +124,8 @@ const EXCLUDE = [
 // Native x86_64 toolchains match these exactly — substring prefs below are
 // only a tiebreak (avoids 'ck1cg741' matching 'cg').
 const PREF_RE: Record<string, RegExp[]> = {
-  c: [/^cg\d+$/, /^ccx8664_\d+$/, /^cclang\d+$/],
-  'c++': [/^g\d+$/, /^ccx8664/, /^cclang\d+$/],
+  c: [/^ccx8664_\d+$/, /^cclang\d+$/, /^cg\d+$/],
+  'c++': [/^ccx8664/, /^cclang\d+$/, /^g\d+$/],
   go: [/^gl\d+$/],
   python: [/^pypy3\d+$/, /^python3\d+$/],
   rust: [/^r\d+$/, /^rustc/],
