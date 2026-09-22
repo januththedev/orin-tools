@@ -95,13 +95,31 @@ const LANG_ALIASES: Record<string, string | string[]> = {
 const PREFER: Record<string, string[]> = {
   python: ['pypy', 'micropython', 'cpython', 'python3', 'python', 'pypy'],
   javascript: ['node'], typescript: ['deno', 'node', 'ts-node'],
-  ruby: ['ruby'], php: ['php'], go: ['gol', 'gccgo', 'go'], rust: ['rust'],
-  java: ['openjdk', 'java'], c: ['gcc', 'clang'], 'c++': ['gcc', 'g++', 'clang'],
+  ruby: ['ruby'], php: ['php'], go: ['gl', 'gccgo', 'go'], rust: ['rust'],
+  java: ['openjdk', 'java'], c: ['cg', 'ccx8664', 'cclang'], 'c++': ['cclang', 'cpp', 'g1'],
   csharp: ['dotnet', 'mono'], swift: ['swift'], kotlin: ['kotlin'],
   lua: ['lua'], r: ['r'], perl: ['perl'], haskell: ['ghc'],
   scala: ['scala'], dart: ['dart'],
 };
-const PENALTY = ['pythran', 'nightly', 'trunk', 'snapshot', 'beta', 'experimental', 'arm', 'arm64', 'riscv', 'avr', 'mips', 'mipsel', 'mips64', 'ppc', 'ppc64', 's390x', 'sparc', 'wasm', 'tinygo', 'assert']; // cross-targets can't execute here
+// Anything with these markers is a cross-target/emulator/bleeding build
+// that cannot execute on the farm's x86_64 runners — drop before scoring.
+const EXCLUDE = [
+  'pythran', 'nightly', 'trunk', 'snapshot', 'beta', 'experimental',
+  'assert', 'wine', 'exwine', 'android', 'dang', 'tinygo',
+  'arm', 'aarch', 'mips', 'ppc', 'riscv', 'sparc', 's390', 'avr',
+  'wasm', 'bpf', 'cuda', 'hip', 'amdgpu', 'nvptx', 'hexagon',
+  'm68k', 'msp430', 'msp', 'mipsel', 'mips64', 'loongarch', 'risc',
+  'vax', 'ia64', 'sh4', 'csky', 'c6x', 'arc', 'rl78', 'rx', 'm32',
+  'm16c', 'h8300', 'm32r', 'mn103', 'mcore', 'microblaze', 'nios',
+  'or1k', 'nds32', 'epiphany', 'ft32', 'pic', 'dsp', 'sparc',
+  'vax', 'pdp', 'z80', 'z88dk', 'ez80', 'z180', 'cmos', 'nes-',
+  'osi-', 'mega65', 'c64', 'cnrom', 'mmc', 'nrom', 'c16', 'c116',
+  'pet', 'vic20', 'plus4', 'cbm', 'atari', 'apple2', 'bbc',
+  'dos', 'win16', 'wince', 'mingw', 'cygwin', 'msys', 'ucrt',
+  'interix', 'qnx', 'vxworks', 'fuchsia', 'serenity', 'haiku',
+  'plan9', 'inferno', 'minix', 'xinu', 'freertos', 'zephyr-os',
+  'nuttx', 'riot', 'contiki', 'embos', 'threadx', 'ucos',
+];
 
 function pickCompilers(list: Compiler[], language: unknown): Compiler[] {
   const want = String(language || '').toLowerCase().trim();
@@ -113,11 +131,14 @@ function pickCompilers(list: Compiler[], language: unknown): Compiler[] {
     for (let i = 0; i < prefs.length; i++) {
       if (low.includes(prefs[i])) { s = i; break; }
     }
-    for (const p of PENALTY) if (low.includes(p)) s += 100;
     return s;
   };
+  const runnable = (id: string): boolean => {
+    const low = id.toLowerCase();
+    return !EXCLUDE.some((m) => low.includes(m));
+  };
   const matches = list.filter(
-    (c) => c?.id && langs.includes(String(c.lang || '').toLowerCase()) && c.supportsExecute !== false,
+    (c) => c?.id && runnable(c.id) && langs.includes(String(c.lang || '').toLowerCase()) && c.supportsExecute !== false,
   );
   const seen = new Set<string>();
   const ordered: Compiler[] = [];
@@ -156,11 +177,16 @@ export default async function handler(req: Req, res: Res): Promise<unknown> {
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST only (GET ?languages=1 to list)' });
   if (!allowed(clientIp(req))) return res.status(429).json({ error: 'Slow down (10 runs/min)' });
 
-  const { language, code, stdin = '' } = req.body || {};
-  if (!language || typeof code !== 'string' || !code.trim()) {
+  const { language, code: rawCode, stdin = '' } = req.body || {};
+  if (!language || typeof rawCode !== 'string' || !rawCode.trim()) {
     return res.status(400).json({ error: 'language and code required' });
   }
-  if (code.length > CODE_MAX) return res.status(400).json({ error: `code too large (max ${CODE_MAX} chars)` });
+  if (rawCode.length > CODE_MAX) return res.status(400).json({ error: `code too large (max ${CODE_MAX} chars)` });
+  // Java requires the public class filename to match (Main.java) — the API
+  // sends <source>, so drop `public` (still valid, runs identically).
+  const code = String(req.body.language).toLowerCase() === 'java'
+    ? rawCode.replace(/public\s+(class\s+\w+)/, '$1')
+    : rawCode;
 
   let lastErr = '';
   try {
