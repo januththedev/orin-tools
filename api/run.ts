@@ -93,7 +93,7 @@ const LANG_ALIASES: Record<string, string | string[]> = {
 // Preferred toolchains first (real interpreters/runtimes, not exotic
 // subsets like Pythran); nightlies/trunk last.
 const PREFER: Record<string, string[]> = {
-  python: ['cpython', 'python3', 'python', 'pypy'],
+  python: ['pypy', 'micropython', 'cpython', 'python3', 'python', 'pypy'],
   javascript: ['node'], typescript: ['deno', 'node', 'ts-node'],
   ruby: ['ruby'], php: ['php'], go: ['go'], rust: ['rust'],
   java: ['openjdk', 'java'], c: ['gcc', 'clang'], 'c++': ['gcc', 'g++', 'clang'],
@@ -197,6 +197,11 @@ export default async function handler(req: Req, res: Res): Promise<unknown> {
         const exec = j.execResult || {};
         const stdout = streamText(exec.stdout) || streamText(j.stdout);
         const stderr = streamText(exec.stderr) || streamText(j.stderr);
+        // No execution happened (e.g. disassembly-only compiler): try next.
+        if (!j.execResult && !stdout && !stderr) {
+          lastErr = `compiler ${c.id}: no execution result`;
+          continue;
+        }
         const exitCode = exec.code ?? (buildFailed ? j.code : 0);
         return res.status(200).json({
           language: c.lang,
