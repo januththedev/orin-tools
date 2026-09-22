@@ -119,14 +119,28 @@ const EXCLUDE = [
   'interix', 'qnx', 'vxworks', 'fuchsia', 'serenity', 'haiku',
   'plan9', 'inferno', 'minix', 'xinu', 'freertos', 'zephyr-os',
   'nuttx', 'riot', 'contiki', 'embos', 'threadx', 'ucos',
+  '386', 'x32', 'ck1', 'ckg', 'c28x', 'pru', 'dspic', 'dsp',
 ];
+// Native x86_64 toolchains match these exactly — substring prefs below are
+// only a tiebreak (avoids 'ck1cg741' matching 'cg').
+const PREF_RE: Record<string, RegExp[]> = {
+  c: [/^cg\d+$/, /^ccx8664_\d+$/, /^cclang\d+$/],
+  'c++': [/^g\d+$/, /^ccx8664/, /^cclang\d+$/],
+  go: [/^gl\d+$/],
+  python: [/^pypy3\d+$/, /^python3\d+$/],
+  rust: [/^r\d+$/, /^rustc/],
+};
 
 function pickCompilers(list: Compiler[], language: unknown): Compiler[] {
   const want = String(language || '').toLowerCase().trim();
   const langs = [want, ...([LANG_ALIASES[want] || []].flat() as string[])];
   const prefs = PREFER[want] || PREFER[langs[1]] || [];
+  const regexes = PREF_RE[want] || PREF_RE[langs[1]] || [];
   const score = (id: string): number => {
     const low = id.toLowerCase();
+    for (let i = 0; i < regexes.length; i++) {
+      if (regexes[i].test(low)) return i - regexes.length; // exact natives first
+    }
     let s = prefs.length;
     for (let i = 0; i < prefs.length; i++) {
       if (low.includes(prefs[i])) { s = i; break; }
@@ -232,6 +246,12 @@ export default async function handler(req: Req, res: Res): Promise<unknown> {
         // No execution happened (e.g. disassembly-only compiler): try next.
         if (!j.execResult && !j.didExecute && !stdout && !stderr) {
           lastErr = `compiler ${c.id}: no execution result`;
+          continue;
+        }
+        // A crashed toolchain (not user code) is worth one more hop:
+        // JVM bootstrap failures like ClassFormatError/NoClassDefFoundError.
+        if (/Exception in thread "main" java\.lang\.(ClassFormatError|NoClassDefFoundError|UnsupportedClassVersionError)/.test(stderr)) {
+          lastErr = `compiler ${c.id}: broken JVM`;
           continue;
         }
         const exitCode = exec.code ?? (buildFailed ? j.code : 0);
