@@ -90,17 +90,38 @@ const LANG_ALIASES: Record<string, string | string[]> = {
   rb: 'ruby', rs: 'rust', golang: 'go',
 };
 
+// Preferred toolchains first (real interpreters/runtimes, not exotic
+// subsets like Pythran); nightlies/trunk last.
+const PREFER: Record<string, string[]> = {
+  python: ['cpython', 'python3', 'python', 'pypy'],
+  javascript: ['node'], typescript: ['deno', 'node', 'ts-node'],
+  ruby: ['ruby'], php: ['php'], go: ['go'], rust: ['rust'],
+  java: ['openjdk', 'java'], c: ['gcc', 'clang'], 'c++': ['gcc', 'g++', 'clang'],
+  csharp: ['dotnet', 'mono'], swift: ['swift'], kotlin: ['kotlin'],
+  lua: ['lua'], r: ['r'], perl: ['perl'], haskell: ['ghc'],
+  scala: ['scala'], dart: ['dart'],
+};
+const PENALTY = ['pythran', 'nightly', 'trunk', 'snapshot', 'beta', 'experimental'];
+
 function pickCompilers(list: Compiler[], language: unknown): Compiler[] {
   const want = String(language || '').toLowerCase().trim();
   const langs = [want, ...([LANG_ALIASES[want] || []].flat() as string[])];
-  // executable compilers for the language, newest-ish first (id order is roughly versioned)
+  const prefs = PREFER[want] || PREFER[langs[1]] || [];
+  const score = (id: string): number => {
+    const low = id.toLowerCase();
+    let s = prefs.length;
+    for (let i = 0; i < prefs.length; i++) {
+      if (low.includes(prefs[i])) { s = i; break; }
+    }
+    for (const p of PENALTY) if (low.includes(p)) s += 100;
+    return s;
+  };
   const matches = list.filter(
     (c) => c?.id && langs.includes(String(c.lang || '').toLowerCase()) && c.supportsExecute !== false,
   );
-  // de-dupe by id, prefer non-nightly/trunk builds last
-  const seen = new Set();
-  const ordered = [];
-  for (const c of [...matches].reverse()) {
+  const seen = new Set<string>();
+  const ordered: Compiler[] = [];
+  for (const c of [...matches].sort((a, b) => score(a.id) - score(b.id))) {
     if (seen.has(c.id)) continue;
     seen.add(c.id);
     ordered.push(c);
