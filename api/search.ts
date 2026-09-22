@@ -148,6 +148,78 @@ async function viaDuckLite(q: string, cap: number): Promise<SearchResult[]> {
   return out;
 }
 
+/**
+ * Weather vertical — Open-Meteo (free, no keys): geocode the place, then
+ * daily forecast. News articles are NOT weather data, so weather-intent
+ * queries get a real forecast first, news only as filler below.
+ */
+const WEATHER_RE = /\b(weather|forecast|temperature|\btemp\b|rain|shower|humid|storm|°c|degrees?|celsius)\b/i;
+
+const PLACE_STOP = new Set('weather,forecast,temperature,temp,rain,shower,humid,storm,tomorrow,today,tonight,week,what,whats,is,the,will,be,for,in,of,at,near,tell,me,show,give,please,and,or,how,much,there,here,it,s,does,do'.split(','));
+
+function extractPlace(q: string): string | null {
+  const m = q.match(/(?:\bin|\bfor|\bat|\bnear)\s+([A-Za-z][A-Za-z\s.'-]*?)(?:\s+(?:tomorrow|today|tonight|this\s+week|next\s+week)\b|\?|$)/i);
+  let place = (m?.[1] || '').trim().replace(/\s+/g, ' ');
+  place = place.replace(/\b(weather|forecast|please|tomorrow|today)\b/gi, '').trim();
+  if (place) return place;
+  // Fallback: prominent capitalized word ("…Kandy tomorrow"), else the
+  // longest meaningful token ("weather kandy" lowercase).
+  const cap = q.match(/\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2})\b/);
+  if (cap && !PLACE_STOP.has(cap[1].toLowerCase())) return cap[1];
+  const toks = q.toLowerCase().split(/[^a-z]+/).filter((w) => w.length > 2 && !PLACE_STOP.has(w));
+  if (toks.length) return toks.slice(0, 2).join(' ');
+  return null;
+}
+
+function wmoText(code: number): string {
+  if (code === 0) return 'Clear sky';
+  if (code <= 3) return ['','Mainly clear','Partly cloudy','Overcast'][code];
+  if (code === 45 || code === 48) return 'Fog';
+  if (code <= 57) return 'Drizzle';
+  if (code <= 67) return 'Rain';
+  if (code <= 77) return 'Snow';
+  if (code <= 82) return 'Showers';
+  if (code <= 86) return 'Snow showers';
+  if (code >= 95) return 'Thunderstorm';
+  return 'Unknown';
+}
+
+async function viaOpenMeteo(q: string, cap: number): Promise<SearchResult[]> {
+  const place = extractPlace(q) || 'Colombo';
+  const dayWord = /tomorrow/i.test(q) ? 'tomorrow' : /today|tonight/i.test(q) ? 'today' : 'today';
+  const g = await fetchTimeout(
+    `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(place)}&count=1&language=en&format=json`,
+    { ms: 8000 },
+  );
+  if (!g.ok) throw new Error(`geo ${g.status}`);
+  const gj = await g.json().catch(() => ({}));
+  const loc = gj?.results?.[0];
+  if (!loc) throw new Error('place not found');
+  const f = await fetchTimeout(
+    `https://api.open-meteo.com/v1/forecast?latitude=${loc.latitude}&longitude=${loc.longitude}` +
+    `&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weathercode,windspeed_10m_max` +
+    `&timezone=auto&forecast_days=3`,
+    { ms: 8000 },
+  );
+  if (!f.ok) throw new Error(`forecast ${f.status}`);
+  const fj = await f.json().catch(() => ({}));
+  const d = fj?.daily;
+  if (!d?.time?.length) throw new Error('no forecast');
+  const idx = dayWord === 'tomorrow' ? 1 : 0;
+  const name = `${loc.name}${loc.country ? ', ' + loc.country : ''}`;
+  const line = (i: number, label: string): SearchResult => ({
+    title: `${name} — ${label}: ${Math.round(d.temperature_2m_max[i])}°/${Math.round(d.temperature_2m_min[i])}°, ${wmoText(d.weathercode[i])}, ${d.precipitation_probability_max[i] ?? 0}% rain`,
+    url: 'https://open-meteo.com/',
+    snippet: `Max ${Math.round(d.temperature_2m_max[i])}°C, min ${Math.round(d.temperature_2m_min[i])}°C. ${wmoText(d.weathercode[i])} with a ${d.precipitation_probability_max[i] ?? 0}% chance of rain. Max wind ${Math.round(d.windspeed_10m_max[i])} km/h. (${d.time[i]})`,
+    engine: 'open-meteo',
+  });
+  const out = [line(idx, dayWord)];
+  if (cap > 1 && d.time.length > idx + 1) {
+    out.push(line(idx + 1, idx === 0 ? 'tomorrow' : 'day after'));
+  }
+  return out.slice(0, cap);
+}
+
 /** Google News RSS — keyless, datacenter-friendly, best for fresh queries. */
 async function viaGoogleNews(q: string, cap: number): Promise<SearchResult[]> {
   const r = await fetchTimeout(
@@ -211,8 +283,24 @@ export default async function handler(req: Req, res: Res): Promise<unknown> {
     }
   }
 
+  // Layer 1b — weather vertical (a forecast, not news links).
+  if (WEATHER_RE.test(q) && results.length < n) {
+    try {
+      const w = await viaOpenMeteo(q, n);
+      if (w.length) {
+        results = [...results, ...w];
+        used.push('open-meteo');
+      }
+      debug.weather = `ok:${w.length}`;
+    } catch (e: any) {
+      debug.weather = 'fail:' + (e?.message || 'unknown');
+    }
+  }
+
   // Layer 2 — public SearXNG instances (first success wins; rest ignored).
-  if (results.length < n) {
+  // Skipped when a weather forecast already answered (news links about old
+  // matches are worse than useless there).
+  if (results.length < n && !used.includes('open-meteo')) {
     for (const base of PUBLIC_SEARXNG) {
       try {
         const r = await viaSearxng(base, q, n);
@@ -230,7 +318,8 @@ export default async function handler(req: Req, res: Res): Promise<unknown> {
   }
 
   // Layer 3a — Google News RSS (fresh queries; datacenter-friendly).
-  if (results.length < n) {
+  // Skipped for weather (forecast above beats stale match reports).
+  if (results.length < n && !used.includes('open-meteo')) {
     try {
       const g = await viaGoogleNews(q, n);
       if (g.length) {
