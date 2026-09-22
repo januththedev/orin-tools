@@ -1,6 +1,9 @@
-# Orin Search — free web search, no keys, no bills
+# Orin Search — free web search + code execution, no keys, no bills
 
 `GET https://<your-deploy>/api/search?q=hello+world&n=5`
+
+`POST https://<your-deploy>/api/run` with `{ "language": "python", "code": "print(42)" }`
+→ `{ "output": "42\n", "code": 0, ... }` (`GET /api/run?languages=1` lists all)
 
 ```json
 {

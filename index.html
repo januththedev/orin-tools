@@ -69,6 +69,16 @@
   .r p { color: var(--mut); font-size: 12.5px; margin-top: 4px; line-height: 1.55; }
   .r .eng { display: inline-block; margin-top: 8px; font-size: 10px; font-weight: 700; color: var(--lime); background: var(--lime-soft); border-radius: 999px; padding: 2px 10px; }
   .demo-meta { padding: 0 18px 14px; font-size: 11px; color: var(--mut); }
+  .tabs { display: flex; gap: 8px; padding: 14px 16px 0; }
+  .tab { flex: 1; padding: 10px; border-radius: 12px; border: 1px solid var(--line); background: transparent; color: var(--mut); font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; transition: all .2s; }
+  .tab.on { background: #0c0a09; color: #fff; border-color: #0c0a09; }
+  .run-row { display: flex; gap: 10px; padding: 14px 16px 0; }
+  .run-row select { background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 11px 12px; font-family: inherit; font-size: 13px; font-weight: 600; color: var(--ink); outline: none; }
+  .run-row button { flex: 1; background: #0c0a09; color: #fff; border: none; border-radius: 12px; padding: 11px; font-weight: 700; font-size: 13px; cursor: pointer; font-family: inherit; }
+  .run-row button:hover { background: #292524; }
+  .run-code { margin: 12px 16px 0; width: calc(100% - 32px); min-height: 130px; background: #0c0a09; color: #e7e5e4; border: none; border-radius: 14px; padding: 14px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; line-height: 1.65; resize: vertical; outline: none; }
+  .run-out { margin: 12px 16px 16px; background: #0c0a09; color: #bef264; border-radius: 14px; padding: 14px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; line-height: 1.65; white-space: pre-wrap; word-break: break-word; max-height: 220px; overflow-y: auto; }
+  .run-out:empty { display: none; }
   .shimmer { height: 62px; border-radius: 14px; background: linear-gradient(100deg, #eee 40%, #f7f7f7 50%, #eee 60%); background-size: 200% 100%; animation: sh 1.2s infinite; }
   @keyframes sh { to { background-position: -200% 0; } }
   .warn { margin: 0 16px 16px; padding: 12px 15px; border-radius: 14px; background: #fef3c7; border: 1px solid #fcd34d; color: #92400e; font-size: 12.5px; line-height: 1.55; }
@@ -128,7 +138,7 @@
 <header class="hero wrap">
   <div class="pill"><span class="live"></span><span class="mono" id="status-pill">checking engines…</span></div>
   <h1>Web search API.<br />Free forever.</h1>
-  <p class="sub">A <b>free, keyless, unlimited</b> search API for your product. No sign-up, no quotas that matter, no per-call billing. Plug it into any app, chatbot, or agent.</p>
+  <p class="sub">A <b>free, keyless, unlimited</b> search API + code execution for your product. No sign-up, no quotas that matter, no per-call billing. Plug it into any app, chatbot, or agent.</p>
   <div class="cta">
     <a href="#demo" class="btn cyan"><i class="fa-solid fa-bolt"></i>Try it live</a>
     <a href="#docs" class="btn ghost"><i class="fa-solid fa-book"></i>Read the docs</a>
@@ -136,13 +146,39 @@
 
   <div class="demo" id="demo">
     <div class="demo-box">
-      <div class="demo-bar"><i></i><i></i><i></i><span class="mono">playground — real results from this API</span></div>
-      <div class="demo-search">
-        <input id="q" type="text" value="weather forecast Kandy tomorrow" aria-label="Search query" />
-        <button id="go">Search</button>
+      <div class="demo-bar"><i></i><i></i><i></i><span class="mono">playground — this API, right now</span></div>
+      <div class="tabs">
+        <button class="tab on" id="tab-search">Search the web</button>
+        <button class="tab" id="tab-run">Run code</button>
       </div>
-      <div class="demo-results" id="results"></div>
-      <div class="demo-meta mono" id="meta">press search — no key, no login, no catch.</div>
+      <div id="panel-search">
+        <div class="demo-search">
+          <input id="q" type="text" value="weather forecast Kandy tomorrow" aria-label="Search query" />
+          <button id="go">Search</button>
+        </div>
+        <div class="demo-results" id="results"></div>
+        <div class="demo-meta mono" id="meta">press search — no key, no login, no catch.</div>
+      </div>
+      <div id="panel-run" style="display:none">
+        <div class="run-row">
+          <select id="rlang" aria-label="Language">
+            <option value="python">Python</option>
+            <option value="javascript">JavaScript</option>
+            <option value="typescript">TypeScript</option>
+            <option value="java">Java</option>
+            <option value="c">C</option>
+            <option value="c++">C++</option>
+            <option value="go">Go</option>
+            <option value="rust">Rust</option>
+            <option value="ruby">Ruby</option>
+            <option value="php">PHP</option>
+          </select>
+          <button id="rgo">Run</button>
+        </div>
+        <textarea class="run-code" id="rcode" spellcheck="false">print(sum(range(101)))</textarea>
+        <div class="run-out" id="rout"></div>
+        <div class="demo-meta mono" id="rmeta">real sandbox, ~20 languages — free.</div>
+      </div>
     </div>
   </div>
 </header>
@@ -170,6 +206,7 @@
   <h2>One endpoint.<br />Thirty seconds to ship.</h2>
   <p class="lead">Single GET route. Params <span class="mono">q</span> (required), <span class="mono">n</span> (1–10, default 5). JSON back with titles, URLs, snippets, and which engines answered.</p>
   <div class="endpoint"><span class="method">GET</span><span id="ep">/api/search?q=…&amp;n=5</span></div>
+  <div class="endpoint"><span class="method">POST</span><span id="ep2">/api/run — { language, code, stdin? }</span></div>
   <div class="docs">
     <div class="code"><button class="copy" data-c="curl">copy</button><pre id="code-curl"><span class="t"># search from anywhere</span>
 curl <span class="s">"https://YOUR-DEPLOY/api/search?q=sri+lanka+news&n=5"</span></pre></div>
@@ -223,6 +260,7 @@ docker run -d --name searxng --restart unless-stopped \
   const base = window.location.origin;
   const isLocalFile = window.location.protocol === 'file:';
   $('ep').textContent = (isLocalFile ? 'https://YOUR-DEPLOY' : base) + '/api/search?q=…&n=5';
+  $('ep2').textContent = (isLocalFile ? 'https://YOUR-DEPLOY' : base) + '/api/run — { language, code, stdin? }';
   ['curl','js','py'].forEach(k => {
     const el = $('code-' + k);
     if (el) el.textContent = el.textContent.replaceAll('https://YOUR-DEPLOY', isLocalFile ? 'https://YOUR-DEPLOY' : base);
@@ -288,6 +326,56 @@ docker run -d --name searxng --restart unless-stopped \
   }
   $('go').addEventListener('click', runDemo);
   $('q').addEventListener('keydown', e => { if (e.key === 'Enter') runDemo(); });
+
+  // tabs
+  const ps = $('panel-search'), pr = $('panel-run');
+  $('tab-search').addEventListener('click', () => {
+    $('tab-search').classList.add('on'); $('tab-run').classList.remove('on');
+    ps.style.display = ''; pr.style.display = 'none';
+  });
+  $('tab-run').addEventListener('click', () => {
+    $('tab-run').classList.add('on'); $('tab-search').classList.remove('on');
+    pr.style.display = ''; ps.style.display = 'none';
+  });
+
+  // code run demo
+  const SNIPPETS = {
+    python: 'print(sum(range(101)))',
+    javascript: 'console.log(7 * 6);',
+    typescript: 'const x: number = 7 * 6;\nconsole.log(x);',
+    java: 'public class Main {\n  public static void main(String[] a) {\n    System.out.println(7 * 6);\n  }\n}',
+    c: '#include <stdio.h>\nint main() {\n  printf("%d\\n", 7 * 6);\n  return 0;\n}',
+    'c++': '#include <iostream>\nint main() {\n  std::cout << 7 * 6 << std::endl;\n}',
+    go: 'package main\nimport "fmt"\nfunc main() {\n  fmt.Println(7 * 6)\n}',
+    rust: 'fn main() {\n  println!("{}", 7 * 6);\n}',
+    ruby: 'puts 7 * 6',
+    php: '<?php echo 7 * 6;',
+  };
+  $('rlang').addEventListener('change', e => { $('rcode').value = SNIPPETS[e.target.value] || ''; $('rout').textContent = ''; });
+  $('rgo').addEventListener('click', async () => {
+    if (isLocalFile) { showWarn(); return; }
+    const out = $('rout'), meta = $('rmeta');
+    out.textContent = 'running…';
+    const t0 = performance.now();
+    try {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 50000);
+      const r = await fetch(base + '/api/run', {
+        method: 'POST', signal: ctrl.signal,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ language: $('rlang').value, code: $('rcode').value }),
+      });
+      clearTimeout(timer);
+      const d = await r.json();
+      const ms = Math.round(performance.now() - t0);
+      if (!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
+      out.textContent = d.output || ('(exit ' + d.code + ', no output)');
+      meta.textContent = d.language + ' ' + d.version + ' · ' + ms + 'ms · $0.00';
+    } catch (e) {
+      out.textContent = '';
+      meta.textContent = 'failed (' + (e.name === 'AbortError' ? 'timed out' : (e.message || 'network')) + ') — retry.';
+    }
+  });
 
   const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: .12 });
   document.querySelectorAll('.reveal').forEach(el => io.observe(el));

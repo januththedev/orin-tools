@@ -9,10 +9,16 @@
  *      (see README) and set the env var; everything else keeps working.
  *   2. Public SearXNG instances (best-effort, short timeouts): rotated,
  *      failures ignored — any single dead instance never fails the request.
- *   3. Keyless fallbacks that almost never die: Wikipedia opensearch +
- *      DuckDuckGo lite HTML. Enough for definitions, places, people.
+ *   3. Keyless fallbacks that almost never die: Google News RSS (fresh
+ *      queries), Wikipedia opensearch + DuckDuckGo lite. Enough for
+ *      definitions, places, people, news.
  *
- * → { query, results: [{ title, url, snippet, engine }], engines, cached }
+ * NOTE on datacenter IPs: Vercel/servers get blocked by some engines
+ * (DuckDuckGo often 403s bots). Every layer is independent and every
+ * failure is recorded in `debug` — the request succeeds on whatever
+ * survives, and `debug` tells you exactly what died where.
+ *
+ * → { query, results: [{ title, url, snippet, engine }], engines, debug, cached }
  * Results are merged, de-duplicated by URL, and cached in-memory (10 min).
  * Per-IP rate limit: 30 req/min (in-memory; fine for our scale).
  */
@@ -116,6 +122,37 @@ async function viaDuckLite(q, cap) {
   return out;
 }
 
+/** Google News RSS — keyless, datacenter-friendly, best for fresh queries. */
+async function viaGoogleNews(q, cap) {
+  const r = await fetchTimeout(
+    `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=en&gl=US&ceid=US:en`,
+    { ms: 8000 },
+  );
+  if (!r.ok) throw new Error(`gnews ${r.status}`);
+  const xml = await r.text();
+  const out = [];
+  const itemRe = /<item>([\s\S]*?)<\/item>/g;
+  const tag = (block, name) => {
+    const m = block.match(new RegExp(`<${name}>([\\s\\S]*?)<\/${name}>`));
+    return m ? m[1].replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').trim() : '';
+  };
+  let m;
+  while ((m = itemRe.exec(xml)) && out.length < cap) {
+    const title = tag(m[1], 'title');
+    const url = tag(m[1], 'link');
+    const pub = tag(m[1], 'pubDate');
+    const source = tag(tag(m[1], 'source') ? `<source>${tag(m[1], 'source')}</source>` : '', 'source') || tag(m[1], 'source');
+    if (!title || !/^https?:\/\//.test(url)) continue;
+    out.push({
+      title: title.slice(0, 200),
+      url: url.slice(0, 500),
+      snippet: `${source ? source + ' · ' : ''}${pub}`.slice(0, 400),
+      engine: 'google-news',
+    });
+  }
+  return out;
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   if (req.method === 'OPTIONS') return res.status(200).end();
@@ -133,6 +170,7 @@ export default async function handler(req, res) {
   }
 
   const used = [];
+  const debug = {};
   let results = [];
 
   // Layer 1 — self-hosted SearXNG (authoritative when configured).
@@ -140,7 +178,9 @@ export default async function handler(req, res) {
     try {
       results = await viaSearxng(SEARXNG_SELF, q, n);
       used.push('self-searxng');
+      debug.self = `ok:${results.length}`;
     } catch (e) {
+      debug.self = 'fail:' + e.message;
       console.log('[orin-search] self searxng failed:', e.message);
     }
   }
@@ -153,13 +193,31 @@ export default async function handler(req, res) {
         if (r.length) {
           results = r;
           used.push('public-searxng');
+          debug.public = `ok:${r.length}@${base}`;
           break;
         }
-      } catch { /* next instance */ }
+        debug.public = `empty@${base}`;
+      } catch (e) {
+        debug.public = `fail@${base}:` + e.message;
+      }
     }
   }
 
-  // Layer 3 — keyless fallbacks (fill whatever is still missing).
+  // Layer 3a — Google News RSS (fresh queries; datacenter-friendly).
+  if (results.length < n) {
+    try {
+      const g = await viaGoogleNews(q, n);
+      if (g.length) {
+        results = [...results, ...g];
+        used.push('google-news');
+      }
+      debug.news = `ok:${g.length}`;
+    } catch (e) {
+      debug.news = 'fail:' + e.message;
+    }
+  }
+
+  // Layer 3b — keyless fallbacks (fill whatever is still missing).
   if (results.length < n) {
     try {
       const w = await viaWikipedia(q, n);
@@ -167,7 +225,10 @@ export default async function handler(req, res) {
         results = [...results, ...w];
         used.push('wikipedia');
       }
-    } catch {}
+      debug.wiki = `ok:${w.length}`;
+    } catch (e) {
+      debug.wiki = 'fail:' + e.message;
+    }
   }
   if (results.length < Math.min(3, n)) {
     try {
@@ -176,7 +237,10 @@ export default async function handler(req, res) {
         results = [...results, ...d];
         used.push('duckduckgo');
       }
-    } catch {}
+      debug.ddg = `ok:${d.length}`;
+    } catch (e) {
+      debug.ddg = 'fail:' + e.message;
+    }
   }
 
   // Merge + dedupe by URL.
@@ -190,7 +254,7 @@ export default async function handler(req, res) {
     } catch { return false; }
   }).slice(0, n);
 
-  const payload = { query: q, results, engines: used, cached: false };
+  const payload = { query: q, results, engines: used, debug, cached: false };
   cache.set(cacheKey, { at: Date.now(), payload });
   if (cache.size > 500) {
     const oldest = [...cache.entries()].sort((a, b) => a[1].at - b[1].at)[0];
