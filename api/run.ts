@@ -95,13 +95,13 @@ const LANG_ALIASES: Record<string, string | string[]> = {
 const PREFER: Record<string, string[]> = {
   python: ['pypy', 'micropython', 'cpython', 'python3', 'python', 'pypy'],
   javascript: ['node'], typescript: ['deno', 'node', 'ts-node'],
-  ruby: ['ruby'], php: ['php'], go: ['go'], rust: ['rust'],
+  ruby: ['ruby'], php: ['php'], go: ['gol', 'gccgo', 'go'], rust: ['rust'],
   java: ['openjdk', 'java'], c: ['gcc', 'clang'], 'c++': ['gcc', 'g++', 'clang'],
   csharp: ['dotnet', 'mono'], swift: ['swift'], kotlin: ['kotlin'],
   lua: ['lua'], r: ['r'], perl: ['perl'], haskell: ['ghc'],
   scala: ['scala'], dart: ['dart'],
 };
-const PENALTY = ['pythran', 'nightly', 'trunk', 'snapshot', 'beta', 'experimental'];
+const PENALTY = ['pythran', 'nightly', 'trunk', 'snapshot', 'beta', 'experimental', 'arm', 'riscv', 'avr']; // cross-targets can't execute here
 
 function pickCompilers(list: Compiler[], language: unknown): Compiler[] {
   const want = String(language || '').toLowerCase().trim();
