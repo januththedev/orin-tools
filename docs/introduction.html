@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Orin Tools Introduction — Free Search API &amp; Code Execution</title>
+<meta name="description" content="Orin Tools is a free, keyless web search API and sandboxed code execution service. No sign-up, no quotas that matter, no bills." />
+<link rel="canonical" href="https://tools.orinai.org/docs/introduction" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://tools.orinai.org/docs/introduction" />
+<meta property="og:title" content="Orin Tools Introduction" />
+<meta property="og:description" content="Free keyless search API and sandboxed code execution for your product." />
+<meta property="og:image" content="https://tools.orinai.org/og-tools.png" />
+<meta property="og:site_name" content="Orin Tools" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Orin Tools Introduction" />
+<meta name="twitter:description" content="Free keyless search API and sandboxed code execution." />
+<meta name="twitter:image" content="https://tools.orinai.org/og-tools.png" />
+<meta name="theme-color" content="#fafaf9" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<style>:root{--acc:#65a30d}*{box-sizing:border-box}body{margin:0;background:#fafaf9;color:#1c1917;font-family:'Space Grotesk',system-ui,sans-serif}main{max-width:760px;margin:0 auto;padding:40px 22px 70px}article h1{font-size:32px;letter-spacing:-.02em;margin:14px 0}article h2{font-size:20px;margin:30px 0 8px}article p,article li{color:#57534e;font-size:15px;line-height:1.7}article b{color:#1c1917}code{font-family:'JetBrains Mono',monospace;font-size:.86em;background:#f5f5f4;border:1px solid rgba(0,0,0,.08);padding:2px 7px;border-radius:7px}pre{background:#1c1917;color:#fafaf9;border-radius:12px;padding:14px 16px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.7}ol,ul{padding-left:22px}.docnav{display:flex;justify-content:space-between;gap:12px;margin-top:44px;flex-wrap:wrap}.docnav a{color:var(--acc)}footer{border-top:1px solid rgba(0,0,0,.08);padding:22px;text-align:center;color:#a8a29e;font-size:13px}footer a{color:#a8a29e;margin:0 8px}</style>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[
+{"@type":"BreadcrumbList","itemListElement":[
+{"@type":"ListItem","position":1,"name":"Orin Tools","item":"https://tools.orinai.org/"},
+{"@type":"ListItem","position":2,"name":"Docs","item":"https://tools.orinai.org/docs/introduction"},
+{"@type":"ListItem","position":3,"name":"Introduction"}]},
+{"@type":"WebPage","url":"https://tools.orinai.org/docs/introduction","name":"Orin Tools Introduction","author":{"@type":"Person","name":"Januth Nimnal","url":"https://orinai.org/januth-nimnal"}}
+]}
+</script>
+</head>
+<body>
+<main>
+<nav aria-label="Breadcrumb" style="font-size:13px;color:#a8a29e"><a href="https://tools.orinai.org/" style="color:var(--acc)">Orin Tools</a> / Docs / Introduction</nav>
+<article>
+<h1>Introduction</h1>
+<p>Orin Tools gives your product two production-ready backends with <b>no API key, no sign-up and no bills</b>: a web <b>search API</b> that fans out across multiple engines, and <b>sandboxed code execution</b> in dozens of languages.</p>
+<h2>Two endpoints</h2>
+<ul>
+<li><b>GET /api/search?q=…&amp;n=5</b> — titles, URLs, snippets and engines per result. Weather questions get a real forecast first. See <a href="/docs/search-api" style="color:var(--acc)">Search API</a>.</li>
+<li><b>POST /api/run { language, code, stdin? }</b> — real compilers return stdout, stderr and exit code. See <a href="/docs/code-execution" style="color:var(--acc)">Code execution</a>.</li>
+</ul>
+<h2>Limits that don't matter</h2>
+<p>Ten code runs a minute, free, forever. Deploy your own copy in one click (no env vars, no build step) and set <b>SEARXNG_URL</b> afterwards for a private search layer. Health check: <b>/api/search?q=test&amp;n=1</b>.</p>
+</article>
+<div class="docnav"><a href="https://tools.orinai.org/">← Orin Tools</a><a href="/docs/search-api">Search API →</a></div>
+</main>
+<footer><a href="https://tools.orinai.org/">Tools</a><a href="https://tools.orinai.org/docs/search-api">Search API</a><a href="https://tools.orinai.org/docs/code-execution">Code Execution</a><a href="https://orinai.org/januth-nimnal">Januth Nimnal</a></footer>
+</body>
+</html>

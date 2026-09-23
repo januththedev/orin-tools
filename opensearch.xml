@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">
+  <ShortName>Orin Tools</ShortName>
+  <Description>Search the web via the free Orin Tools API</Description>
+  <InputEncoding>UTF-8</InputEncoding>
+  <Url type="text/html" template="https://tools.orinai.org/?q={searchTerms}" />
+  <Url type="application/json" template="https://tools.orinai.org/api/search?q={searchTerms}&amp;n=5" />
+</OpenSearchDescription>

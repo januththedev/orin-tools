@@ -3,5 +3,8 @@
   "functions": {
     "api/search.ts": { "maxDuration": 25 },
     "api/run.ts": { "maxDuration": 60 }
-  }
+  },
+  "rewrites": [
+    { "source": "/docs/:slug", "destination": "/docs/:slug.html" }
+  ]
 }

@@ -17,6 +17,7 @@
 <meta name="twitter:description" content="Free keyless web search API and sandboxed code execution." />
 <meta name="twitter:image" content="https://tools.orinai.org/og-tools.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="search" type="application/opensearchdescription+xml" title="Orin Tools" href="/opensearch.xml" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
@@ -148,6 +149,15 @@
 </style>
 <script type="importmap">
 { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[
+{"@type":"SoftwareApplication","name":"Orin Tools","applicationCategory":"DeveloperApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0"},"author":{"@type":"Person","name":"Januth Nimnal","url":"https://januth.dev"},"url":"https://tools.orinai.org/"},
+{"@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Is the Orin Tools search API really free with no key?","acceptedAnswer":{"@type":"Answer","text":"Yes. GET /api/search needs no API key, no sign-up and has no bills. It fans out across SearXNG, Wikipedia, news and instant-answer sources."}},
+{"@type":"Question","name":"Which programming languages can Orin Tools execute?","acceptedAnswer":{"@type":"Answer","text":"Dozens, including Python, JavaScript, Java, C, C++, Go and Rust, on real toolchains. List exact names with GET /api/run?languages=1."}},
+{"@type":"Question","name":"What are the Orin Tools rate limits?","acceptedAnswer":{"@type":"Answer","text":"Ten code runs a minute, free forever. Deploy your own copy free if you need more."}}]}
+]}
 </script>
 </head>
 <body>
@@ -308,8 +318,10 @@ docker run -d --name searxng --restart unless-stopped \
     <div class="brand"><span class="dot"></span>ORIN&nbsp;TOOLS <span style="color:var(--mut);font-weight:400;margin-left:10px">free for life · made by <a href="https://januth.dev" target="_blank" style="margin:0;color:var(--cyan);font-weight:700">Januth</a></span></div>
     <div>
       <a href="/api/search?q=hello&n=1" target="_blank">API</a>
+      <a href="/docs/introduction">Docs</a>
       <a href="https://github.com/januththedev/orin-tools" target="_blank">GitHub</a>
       <a href="https://orinai.org" target="_blank">Orin AI</a>
+      <a href="https://orinai.org/januth-nimnal" target="_blank">Januth Nimnal</a>
     </div>
   </div>
 </footer>
