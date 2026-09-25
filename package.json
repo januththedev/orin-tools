@@ -3,7 +3,9 @@
   "private": true,
   "version": "2.0.0",
   "type": "module",
-  "engines": { "node": ">=22.18.0" },
+  "engines": {
+    "node": ">=22.18.0"
+  },
   "scripts": {
     "dev": "vercel dev",
     "platform:build": "npm --prefix vendor/orin-platform ci && npm --prefix vendor/orin-platform run build",
@@ -17,14 +19,15 @@
     "check": "npm run typecheck && npm test"
   },
   "dependencies": {
-    "ajv": "8.20.0",
-    "ajv-formats": "3.0.1",
-    "@upstash/redis": "1.35.6",
-    "@orin/contracts": "file:vendor/orin-platform/packages/contracts",
+    "@orin/client": "file:vendor/orin-platform/packages/client",
     "@orin/config": "file:vendor/orin-platform/packages/config",
-    "@orin/security": "file:vendor/orin-platform/packages/security",
+    "@orin/contracts": "file:vendor/orin-platform/packages/contracts",
     "@orin/observability": "file:vendor/orin-platform/packages/observability",
-    "@orin/client": "file:vendor/orin-platform/packages/client"
+    "@orin/security": "file:vendor/orin-platform/packages/security",
+    "@upstash/redis": "1.35.6",
+    "@vercel/sandbox": "^3.5.0",
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1"
   },
   "devDependencies": {
     "@types/node": "22.19.15",
