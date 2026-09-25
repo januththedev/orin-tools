@@ -1,6 +1,6 @@
 # Orin Tools
 
-Keyless public web search plus a private service-to-service search path for Orin products. Public code execution is disabled until the separate sandbox security gate is complete.
+Keyless public web search plus a private service-to-service search path for Orin products. Public code execution is disabled by default; an explicitly configured Vercel Sandbox runner is available behind a separate deployment gate.
 
 ## Search
 
@@ -35,11 +35,11 @@ POST keeps the query in the request body, does not echo it, requires `aud=orin-t
 
 ## Code execution
 
-`POST /api/run` currently returns:
-
-```json
-{"error":{"code":"ORIN_RUN_DISABLED","message":"Public code execution is disabled.","retryable":false,"retry_after":null,"request_id":"..."}}
-```
+`POST /api/run` returns the stable `ORIN_RUN_DISABLED` response by default.
+Deployments may explicitly set `ORIN_RUNNER_MODE=vercel-sandbox` after the
+runner and quota review. That path denies network access, bounds input/output
+and runtime, and fails closed when durable quota state is unavailable. It never
+evaluates code inside the Vercel function.
 
 ## Local verification
 
