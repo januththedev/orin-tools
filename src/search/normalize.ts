@@ -1,0 +1,4 @@
+import { normalizeResultLink } from "./url-guard.js";
+import type { RawCitation } from "./providers.js";
+import type { SearchCitation } from "./types.js";
+export function normalizeCitations(items: RawCitation[], now = new Date()): SearchCitation[] { const seen = new Set<string>(); const output: SearchCitation[] = []; for (const item of items) { try { const url = normalizeResultLink(item.url); const key = `${new URL(url).hostname}${new URL(url).pathname}`; if (seen.has(key)) continue; seen.add(key); output.push({ id: `result_${Buffer.from(key).toString("base64url").slice(0, 18)}`, title: item.title.slice(0, 200), source: item.source.slice(0, 120), provider: item.provider.slice(0, 120), url, snippet: item.snippet.replace(/[\u0000-\u001f\u007f]/g, " ").slice(0, 800), published_at: item.published_at, retrieved_at: now.toISOString(), kind: item.kind, trust: "untrusted" }); } catch { /* unsafe links are dropped */ } } return output; }

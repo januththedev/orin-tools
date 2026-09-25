@@ -1,9 +1,35 @@
 {
-  "name": "orin-search",
+  "name": "orin-tools",
   "private": true,
-  "version": "1.0.0",
+  "version": "2.0.0",
   "type": "module",
+  "engines": { "node": ">=22.18.0" },
   "scripts": {
-    "dev": "vercel dev"
+    "dev": "vercel dev",
+    "platform:build": "npm --prefix vendor/orin-platform ci && npm --prefix vendor/orin-platform run build",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run platform:build && vitest run",
+    "test:unit": "vitest run test/unit",
+    "test:security": "vitest run test/security",
+    "test:integration": "vitest run test/integration",
+    "test:contract": "vitest run test/contract",
+    "test:preview": "cross-env ORIN_PROVIDER_MODE=fake vitest run test/integration/search-handler.test.ts",
+    "check": "npm run typecheck && npm test"
+  },
+  "dependencies": {
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
+    "@upstash/redis": "1.35.6",
+    "@orin/contracts": "file:vendor/orin-platform/packages/contracts",
+    "@orin/config": "file:vendor/orin-platform/packages/config",
+    "@orin/security": "file:vendor/orin-platform/packages/security",
+    "@orin/observability": "file:vendor/orin-platform/packages/observability",
+    "@orin/client": "file:vendor/orin-platform/packages/client"
+  },
+  "devDependencies": {
+    "@types/node": "22.19.15",
+    "cross-env": "7.0.3",
+    "typescript": "5.9.3",
+    "vitest": "3.2.4"
   }
 }

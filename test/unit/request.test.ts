@@ -1,0 +1,3 @@
+import { describe, expect, it } from "vitest";
+import { parseSearchRequest } from "../../src/search/request.js";
+describe("search request", () => { it("accepts bounded GET", () => { expect(parseSearchRequest({ method: "GET", query: { q: "weather", n: "5" } }).request.query).toBe("weather"); }); it("rejects overlong/unknown/private shape", () => { expect(() => parseSearchRequest({ method: "GET", query: { q: "x".repeat(513) } })).toThrow(); expect(() => parseSearchRequest({ method: "POST", body: { query: "x", provider: "evil" } })).toThrow(); }); it("keeps POST query in body", () => { expect(parseSearchRequest({ method: "POST", body: { query: "private", n: 3 } }).privateRequest).toBe(true); }); });

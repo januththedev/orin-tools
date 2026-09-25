@@ -1,8 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
-    "api/search.ts": { "maxDuration": 25 },
-    "api/run.ts": { "maxDuration": 60 }
+    "api/search.ts": { "maxDuration": 10 },
+    "api/run.ts": { "maxDuration": 10 }
   },
   "rewrites": [
     { "source": "/docs/:slug", "destination": "/docs/:slug.html" }

@@ -1,0 +1,3 @@
+import { describe, expect, it } from "vitest";
+import { normalizeCitations } from "../../src/search/normalize.js";
+describe("citations", () => { it("drops unsafe links and marks evidence untrusted", () => { const result = normalizeCitations([{ title: "ok", source: "s", provider: "p", url: "https://example.com/a", snippet: "x", published_at: null, kind: "web" }, { title: "bad", source: "s", provider: "p", url: "javascript:alert(1)", snippet: "x", published_at: null, kind: "web" }], new Date("2026-09-25T00:00:00Z")); expect(result).toHaveLength(1); expect(result[0].trust).toBe("untrusted"); }); });
