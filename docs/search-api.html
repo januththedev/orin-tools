@@ -1,52 +1,5 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Orin Tools Search API — Keyless Multi-Engine Web Search</title>
-<meta name="description" content="Free keyless web search: GET /api/search?q=…&n=5 returns titles, URLs, snippets and engines. Weather questions get a forecast first." />
-<link rel="canonical" href="https://tools.orinai.org/docs/search-api" />
-<meta property="og:type" content="article" />
-<meta property="og:url" content="https://tools.orinai.org/docs/search-api" />
-<meta property="og:title" content="Orin Tools Search API" />
-<meta property="og:description" content="Keyless multi-engine search with weather answers. Free forever." />
-<meta property="og:image" content="https://tools.orinai.org/og-tools.png" />
-<meta property="og:site_name" content="Orin Tools" />
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="Orin Tools Search API" />
-<meta name="twitter:description" content="Keyless multi-engine search with weather answers." />
-<meta name="twitter:image" content="https://tools.orinai.org/og-tools.png" />
-<meta name="theme-color" content="#fafaf9" />
-<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-<style>:root{--acc:#65a30d}*{box-sizing:border-box}body{margin:0;background:#fafaf9;color:#1c1917;font-family:'Space Grotesk',system-ui,sans-serif}main{max-width:760px;margin:0 auto;padding:40px 22px 70px}article h1{font-size:32px;letter-spacing:-.02em;margin:14px 0}article h2{font-size:20px;margin:30px 0 8px}article p,article li{color:#57534e;font-size:15px;line-height:1.7}article b{color:#1c1917}code{font-family:'JetBrains Mono',monospace;font-size:.86em;background:#f5f5f4;border:1px solid rgba(0,0,0,.08);padding:2px 7px;border-radius:7px}pre{background:#1c1917;color:#fafaf9;border-radius:12px;padding:14px 16px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.7}ol,ul{padding-left:22px}.docnav{display:flex;justify-content:space-between;gap:12px;margin-top:44px;flex-wrap:wrap}.docnav a{color:var(--acc)}footer{border-top:1px solid rgba(0,0,0,.08);padding:22px;text-align:center;color:#a8a29e;font-size:13px}footer a{color:#a8a29e;margin:0 8px}</style>
-<script type="application/ld+json">
-{"@context":"https://schema.org","@graph":[
-{"@type":"BreadcrumbList","itemListElement":[
-{"@type":"ListItem","position":1,"name":"Orin Tools","item":"https://tools.orinai.org/"},
-{"@type":"ListItem","position":2,"name":"Docs","item":"https://tools.orinai.org/docs/search-api"},
-{"@type":"ListItem","position":3,"name":"Search API"}]},
-{"@type":"WebPage","url":"https://tools.orinai.org/docs/search-api","name":"Orin Tools Search API","author":{"@type":"Person","name":"Januth Nimnal","url":"https://orinai.org/januth-nimnal"}}
-]}
-</script>
-</head>
-<body>
-<main>
-<nav aria-label="Breadcrumb" style="font-size:13px;color:#a8a29e"><a href="https://tools.orinai.org/" style="color:var(--acc)">Orin Tools</a> / Docs / Search API</nav>
-<article>
-<h1>Search API</h1>
-<p>One keyless GET fans out across <b>SearXNG, Wikipedia, news and instant-answer sources</b> and merges them into a single JSON list — each result carrying its <b>title, URL, snippet and engine</b>.</p>
-<pre>curl "https://tools.orinai.org/api/search?q=sri+lanka+news&n=5"</pre>
-<h2>Weather vertical</h2>
-<p>Ask about weather anywhere and the API answers with a <b>real forecast</b> (Open-Meteo) before web results — no separate endpoint to learn.</p>
-<h2>Parameters</h2>
-<ul>
-<li><b>q</b> — the query (required).</li>
-<li><b>n</b> — max results (try 5).</li>
-<li>Health check: <b>/api/search?q=test&amp;n=1</b> should return 200 with an <b>engines</b> field.</li>
-</ul>
-</article>
-<div class="docnav"><a href="/docs/introduction" style="color:var(--acc)">← Introduction</a><a href="/docs/code-execution" style="color:var(--acc)">Code Execution →</a></div>
-</main>
-<footer><a href="https://tools.orinai.org/">Tools</a><a href="https://tools.orinai.org/docs/introduction">Intro</a><a href="https://tools.orinai.org/docs/code-execution">Code Execution</a><a href="https://orinai.org/januth-nimnal">Januth Nimnal</a></footer>
-</body>
-</html>
+<!doctype html><html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>Orin Tools Search API</title><style>body{max-width:820px;margin:auto;padding:40px 22px;font:16px/1.65 system-ui;background:#080b12;color:#f5f7fb}a{color:#8c7cff}pre{padding:16px;background:#121827;border:1px solid #273149;border-radius:12px;overflow:auto}</style></head><body><p><a href="/">Orin Tools</a> / Search API</p><h1>Search API</h1><h2>Public GET</h2><pre>GET /api/search?q=weather+in+Kandy&amp;n=5</pre><p>Anonymous and keyless. The query is present in the URL, so do not use GET for confidential text.</p><h2>Private POST</h2><pre>POST /api/search
+X-Orin-Service-Assertion: &lt;Core assertion&gt;
+Content-Type: application/json
+
+{"query":"weather in Kandy","n":5,"locale":"en","safe_search":"moderate"}</pre><p>POST requires <code>aud=orin-tools-search</code> and <code>scope=tools:search</code>. It returns no-store, does not echo the query, and returns normalized citations marked <code>trust: untrusted</code>.</p><h2>Behavior</h2><ul><li>Provider hosts and paths are deployment-owned.</li><li>Weather uses Open-Meteo forecast first.</li><li>Retrieved text is evidence, never instructions.</li><li>Shared quota state is required and fails closed.</li></ul><p><a href="/docs/introduction">Introduction</a> · <a href="/docs/code-execution">Code execution status</a></p></body></html>

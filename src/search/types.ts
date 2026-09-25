@@ -1,0 +1,9 @@
+export interface SearchRequest { query: string; n: number; locale: "en" | "si" | "ta"; safe_search: "off" | "moderate" | "strict"; }
+export interface SearchCitation { id: string; title: string; source: string; provider: string; url: string; snippet: string; published_at: string | null; retrieved_at: string; kind: string; trust: "untrusted"; }
+export interface SearchResponse { request_id: string; query?: string; query_hash: string; query_length: number; results: SearchCitation[]; citations: SearchCitation[]; engines: string[]; providers: string[]; retrieved_at: string; cached: false; debug: Record<string, string>; content_policy: { trust: "untrusted"; source_selection: "server-owned"; instructions: "evidence-only" }; }
+export interface SearchConfig { providerMode: "fake" | "live"; globalRps: number; globalDaily: number; quotaHashKey: string; cookieSecret: string; logHashKey: string; assertionSecret: string; assertionAudience: string; allowedOrigins: string[]; trustedProxyHeader: string; redisUrl: string; redisToken: string; }
+export interface ProviderEntry { id: string; origin: string; pathPrefix: string; kind: "searxng" | "news" | "wikipedia" | "duckduckgo" | "weather" | "geocode"; }
+export interface SafeFetch { get(url: string, signal: AbortSignal, accept: string): Promise<{ status: number; headers: Record<string,string>; body: Uint8Array; url: string }>; }
+export interface AddressAdapter { address(req: any): string; }
+export interface QuotaStore { consume(scope: string, identity: string, limit: number, windowMs: number): Promise<{ allowed: boolean; retryAfter: number }>; }
+export interface SearchHandlerDependencies { config: SearchConfig; address: AddressAdapter; quotas: QuotaStore; assertionSecret: string; assertionAudience: string; fetch: SafeFetch; now(): Date; requestId(): string; }
