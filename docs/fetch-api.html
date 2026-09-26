@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Orin Tools — Browser Use (POST /api/fetch)</title>
+<meta name="description" content="Keyless page reader for browser use: fetch one public web page and get readable text. No account, no API key." />
+<link rel="canonical" href="https://tools.orinai.org/docs/fetch-api" />
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; background: #0a0a0b; color: #e7e5e4; font: 16px/1.65 ui-sans-serif, system-ui, sans-serif; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 48px 20px 80px; }
+  h1 { font-size: 2rem; letter-spacing: -0.02em; margin: 0 0 8px; }
+  h2 { font-size: 1.2rem; margin: 40px 0 10px; }
+  code, pre { font-family: ui-monospace, 'JetBrains Mono', monospace; font-size: 14px; }
+  pre { background: #131316; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 14px 16px; overflow-x: auto; }
+  .k { color: #a1a1aa; }
+  .tag { display: inline-block; border: 1px solid rgba(255,255,255,0.18); border-radius: 999px; padding: 3px 12px; font-size: 12px; letter-spacing: 0.08em; color: #a1a1aa; }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.08); vertical-align: top; }
+  th { color: #a1a1aa; font-weight: 500; font-size: 13px; }
+  a { color: #22d3ee; }
+  .warn { border-left: 3px solid #fbbf24; padding: 10px 14px; background: rgba(251,191,36,0.06); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<p><a href="/">← Orin Tools</a></p>
+<h1>Browser use — <code>POST /api/fetch</code></h1>
+<p class="tag">NO ACCOUNT · NO API KEY</p>
+
+<p>Fetch one public web page and get readable text back. This is the piece you wire into your own AI system when it needs to read a URL, so you do not have to build and host a crawler.</p>
+
+<h2>Request</h2>
+<pre><code>POST https://tools.orinai.org/api/fetch
+Content-Type: application/json
+
+{
+  "url": "https://example.com/article",
+  "maxChars": 8000
+}</code></pre>
+
+<table>
+  <tr><th>Field</th><th>Required</th><th>Meaning</th></tr>
+  <tr><td><code>url</code></td><td>yes</td><td>An absolute <code>http</code> or <code>https</code> URL, under 2048 characters.</td></tr>
+  <tr><td><code>maxChars</code></td><td>no</td><td>200–40000. Default 40000.</td></tr>
+</table>
+
+<h2>Response</h2>
+<pre><code>{
+  "request_id": "…",
+  "url": "https://example.com/article",
+  "finalUrl": "https://example.com/article/",
+  "status": 200,
+  "contentType": "text/html; charset=utf-8",
+  "text": "Readable text…",
+  "truncated": false,
+  "fetchedAt": "2026-01-01T00:00:00.000Z",
+  "content_policy": { "trust": "untrusted", "instructions": "evidence-only" }
+}</code></pre>
+
+<h2>What it will and will not fetch</h2>
+<p>Only HTML, plain text, Markdown, and JSON are read. Anything else returns <code>415</code> rather than passing bytes through.</p>
+<p>Only public web addresses. Loopback, private, link-local, and cloud metadata addresses are refused, and the check is repeated on <strong>every redirect hop</strong> — a first URL that is safe cannot redirect into one that is not.</p>
+<p>Redirects are capped at 3. Responses are capped at 1 MB and the request times out after 10 seconds.</p>
+
+<div class="warn">
+<p><strong>Treat everything returned as untrusted input.</strong> It is text from a page you did not write, and the response is tagged <code>content_policy.trust: "untrusted"</code> with <code>instructions: "evidence-only"</code>. Pass it to a model as evidence, never as instructions.</p>
+</div>
+
+<h2>Rate limits</h2>
+<p>Keyless calls are limited per client address, on top of the global limit shared with <code>/api/search</code>. A refusal returns <code>429</code> with a <code>Retry-After</code> header. The address is used only for rate limiting and is not stored.</p>
+
+<p><a href="/docs/search-api">Search API →</a></p>
+
+</div>
+</body>
+</html>
